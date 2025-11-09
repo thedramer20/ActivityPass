@@ -15,8 +15,23 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.views.generic import TemplateView
+from rest_framework.routers import DefaultRouter
+
+from activities.views import ActivityViewSet, ParticipationViewSet, StudentCourseEventViewSet, eligibility_check
+from accounts.views import StudentProfileViewSet
+
+router = DefaultRouter()
+router.register(r'activities', ActivityViewSet)
+router.register(r'participations', ParticipationViewSet)
+router.register(r'course-events', StudentCourseEventViewSet)
+router.register(r'student-profile', StudentProfileViewSet, basename='student-profile')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include(router.urls)),
+    path('api/eligibility/<int:activity_id>/', eligibility_check, name='eligibility-check'),
+    # Serve React build (if built) at root.
+    path('', TemplateView.as_view(template_name='index.html'), name='react-app'),
 ]
