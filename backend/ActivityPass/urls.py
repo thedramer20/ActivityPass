@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
+from django.http import HttpResponse
+from pathlib import Path
 from ActivityPass.health import health
 from rest_framework.routers import DefaultRouter
 
@@ -34,6 +36,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/eligibility/<int:activity_id>/', eligibility_check, name='eligibility-check'),
     # Serve React build (if built) at root.
-    path('', TemplateView.as_view(template_name='index.html'), name='react-app'),
+        # Root SPA: only serve built index.html if it exists, else show helpful message.
+        path('', (TemplateView.as_view(template_name='index.html') if (Path(__file__).resolve().parent.parent.parent / 'frontend' / 'build' / 'index.html').exists() else (lambda request: HttpResponse('Frontend build not found. Run: python manage.py build_frontend or use runfullstack for dev.', status=503))), name='react-app'),
     path('health/', health, name='health'),
 ]
