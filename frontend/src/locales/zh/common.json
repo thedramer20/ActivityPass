@@ -1,0 +1,21 @@
+{
+    "app.title": "ActivityPass",
+    "app.subtitle": "AI 辅助的学生活动管理平台",
+    "nav.home": "首页",
+    "nav.login": "登录",
+    "nav.logout": "退出",
+    "login.heading": "登录",
+    "login.username": "用户名",
+    "login.password": "密码",
+    "login.submit": "登录",
+    "login.sample": "尝试示例账号：",
+    "activities.loading": "正在加载活动...",
+    "activities.none": "暂无活动",
+    "activity.apply": "报名",
+    "apply.success": "报名成功",
+    "apply.fail": "报名失败",
+    "error.generic": "错误",
+    "lang.switch": "语言",
+    "lang.english": "英文",
+    "lang.chinese": "中文"
+}

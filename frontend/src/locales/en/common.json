@@ -1,0 +1,21 @@
+{
+    "app.title": "ActivityPass",
+    "app.subtitle": "AI-assisted student activity management platform",
+    "nav.home": "Home",
+    "nav.login": "Login",
+    "nav.logout": "Logout",
+    "login.heading": "Login",
+    "login.username": "Username",
+    "login.password": "Password",
+    "login.submit": "Sign in",
+    "login.sample": "Try seeded staff user:",
+    "activities.loading": "Loading activities...",
+    "activities.none": "No activities found.",
+    "activity.apply": "Apply",
+    "apply.success": "Applied successfully",
+    "apply.fail": "Apply failed",
+    "error.generic": "Error",
+    "lang.switch": "Language",
+    "lang.english": "English",
+    "lang.chinese": "Chinese"
+}

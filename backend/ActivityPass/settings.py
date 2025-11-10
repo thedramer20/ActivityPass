@@ -182,10 +182,19 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
+}
+
+# Simple JWT settings (can be tuned later)
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': __import__('datetime').timedelta(minutes=int(os.getenv('JWT_ACCESS_MINUTES', '30'))),
+    'REFRESH_TOKEN_LIFETIME': __import__('datetime').timedelta(days=int(os.getenv('JWT_REFRESH_DAYS', '7'))),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
 }
 
 # Default primary key field type
