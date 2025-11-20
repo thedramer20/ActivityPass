@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 // Tailwind handles styling; legacy CRA styles not required
 // import './App.css';
 import { Routes, Route, Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
@@ -25,8 +26,6 @@ const Navbar: React.FC = () => {
     const navigate = useNavigate();
     const loc = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [settingsOpen, setSettingsOpen] = useState(false);
-    const settingsRef = useRef<HTMLDivElement>(null);
     const navRef = useRef<HTMLElement>(null);
 
     const dashboardLabel = useMemo(() => {
@@ -47,19 +46,7 @@ const Navbar: React.FC = () => {
 
     useEffect(() => {
         setSidebarOpen(false);
-        setSettingsOpen(false);
     }, [loc.pathname]);
-
-    useEffect(() => {
-        if (!settingsOpen) return;
-        const handler = (evt: MouseEvent) => {
-            if (settingsRef.current && !settingsRef.current.contains(evt.target as Node)) {
-                setSettingsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, [settingsOpen]);
 
     const isActive = (href: string) => {
         if (href === '/') return loc.pathname === '/';
@@ -92,34 +79,16 @@ const Navbar: React.FC = () => {
         };
     }, []);
 
-    const settingsLabel = t('nav.settings', { defaultValue: 'Settings' });
     const preferencesLabel = t('nav.preferences', { defaultValue: 'Preferences' });
-    const quickPreferencesLabel = t('nav.quickPreferences', { defaultValue: 'Quick preferences' });
     const menuLabel = t('nav.menu', { defaultValue: 'Menu' });
     const isAuthPage = loc.pathname === '/auth' || loc.pathname === '/login';
-    const inlinePreferencesVisible = !tokens && !isAuthPage;
     const showLoginCTA = !tokens && !isAuthPage;
-    const showPreferencesInsideSettings = tokens || isAuthPage;
 
     return (
         <nav ref={navRef} className="sticky top-0 z-20 border-b border-gray-200 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl dark:border-gray-800">
             <div className="w-full px-4 sm:px-6">
                 <div className="flex items-center justify-between h-16 gap-4 lg:h-20">
-                    <div className="flex items-center gap-3">
-                        {tokens && (
-                            <button
-                                type="button"
-                                className="inline-flex items-center justify-center p-2 text-gray-600 rounded-md sm:hidden hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800"
-                                onClick={() => setSidebarOpen(true)}
-                                aria-label="Open navigation"
-                            >
-                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M4 7h16M4 12h16M4 17h16" />
-                                </svg>
-                            </button>
-                        )}
-                        <Link to="/" className="text-xl font-semibold tracking-tight lg:text-2xl">{t('app.title')}</Link>
-                    </div>
+                    <Link to="/" className="text-xl font-semibold tracking-tight lg:text-2xl">{t('app.title')}</Link>
                     <div className="items-center hidden gap-6 sm:flex">
                         {navLinks.map(link => (
                             <Link
@@ -132,77 +101,35 @@ const Navbar: React.FC = () => {
                         ))}
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-                        {inlinePreferencesVisible && (
-                            <div className="flex items-center gap-2" aria-label={quickPreferencesLabel}>
-                                <LanguageSwitcher />
-                                <ThemeToggle />
-                            </div>
-                        )}
-                        {tokens && (
-                            <button onClick={handleLogout} className="px-4 py-2 text-sm text-white bg-gray-900 rounded-md lg:text-base hover:bg-black" data-testid="logout-button">
-                                {t('nav.logout')}
-                            </button>
-                        )}
                         {showLoginCTA && (
                             <Link to="/auth" className="px-4 py-2 text-sm text-white bg-gray-900 rounded-md lg:text-base hover:bg-black">
                                 {t('nav.login')}
                             </Link>
                         )}
-                        <div className="relative" ref={settingsRef}>
-                            <button
-                                type="button"
-                                onClick={() => setSettingsOpen(prev => !prev)}
-                                className="inline-flex items-center justify-center p-2 text-gray-600 bg-white border border-gray-200 rounded-md dark:border-gray-700 dark:bg-gray-900 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                                aria-haspopup="true"
-                                aria-expanded={settingsOpen}
-                            >
-                                <span className="sr-only">{settingsLabel}</span>
-                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <line x1="4" y1="21" x2="4" y2="14" />
-                                    <line x1="4" y1="10" x2="4" y2="3" />
-                                    <line x1="12" y1="21" x2="12" y2="12" />
-                                    <line x1="12" y1="8" x2="12" y2="3" />
-                                    <line x1="20" y1="21" x2="20" y2="16" />
-                                    <line x1="20" y1="12" x2="20" y2="3" />
-                                    <line x1="1" y1="14" x2="7" y2="14" />
-                                    <line x1="9" y1="8" x2="15" y2="8" />
-                                    <line x1="17" y1="16" x2="23" y2="16" />
-                                </svg>
-                            </button>
-                            {settingsOpen && (
-                                <div className="absolute right-0 w-64 mt-2 bg-white border border-gray-200 divide-y divide-gray-100 shadow-xl rounded-xl dark:border-gray-700 dark:bg-gray-900 dark:divide-gray-800">
-                                    <div className="px-4 py-3">
-                                        <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">{preferencesLabel}</p>
-                                    </div>
-                                    <div className="flex flex-col gap-3 p-4">
-                                        {showPreferencesInsideSettings ? (
-                                            <>
-                                                <LanguageSwitcher />
-                                                <ThemeToggle />
-                                            </>
-                                        ) : (
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                {t('nav.loginToCustomize', { defaultValue: 'Sign in to customize your experience.' })}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setSidebarOpen(true)}
+                            className="inline-flex items-center justify-center p-2 text-gray-600 bg-white border border-gray-200 rounded-md dark:border-gray-700 dark:bg-gray-900 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                            aria-label={menuLabel}
+                        >
+                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M4 7h16M4 12h16M4 17h16" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
-            {sidebarOpen && tokens && (
-                <div className="fixed inset-0 z-30 sm:hidden">
+            {sidebarOpen && typeof document !== 'undefined' && createPortal(
+                <div className="fixed inset-0 z-[80]">
                     <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
-                    <div className="relative ml-auto h-full w-72 max-w-[80vw] bg-white dark:bg-gray-950 border-l border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col p-6 gap-6">
+                    <div className="relative ml-auto h-full w-80 max-w-[85vw] bg-white dark:bg-gray-950 border-l border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col p-6 gap-6">
                         <div className="flex items-center justify-between">
                             <p className="text-base font-semibold text-gray-900 dark:text-white">{menuLabel}</p>
                             <button
                                 type="button"
                                 onClick={() => setSidebarOpen(false)}
                                 className="p-2 text-gray-500 rounded-md hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                aria-label="Close navigation"
+                                aria-label={t('common.close', { defaultValue: 'Close' })}
                             >
                                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M6 18L18 6M6 6l12 12" />
@@ -210,7 +137,7 @@ const Navbar: React.FC = () => {
                             </button>
                         </div>
                         <div className="flex flex-col gap-3">
-                            {navLinks.map(link => (
+                            {navLinks.length ? navLinks.map(link => (
                                 <Link
                                     key={link.to}
                                     to={link.to}
@@ -219,7 +146,9 @@ const Navbar: React.FC = () => {
                                 >
                                     {link.label}
                                 </Link>
-                            ))}
+                            )) : (
+                                <p className="text-sm text-gray-500 dark:text-gray-400">{t('nav.noLinks', { defaultValue: 'Sign in to access dashboard shortcuts.' })}</p>
+                            )}
                         </div>
                         <div className="flex flex-col gap-4 mt-auto">
                             <div className="p-4 border border-gray-200 rounded-xl dark:border-gray-800">
@@ -230,7 +159,7 @@ const Navbar: React.FC = () => {
                                 </div>
                             </div>
                             {tokens ? (
-                                <button onClick={handleLogout} className="w-full px-4 py-2 text-sm text-white bg-gray-900 rounded-md hover:bg-black" data-testid="logout-button-mobile">
+                                <button onClick={() => { handleLogout(); setSidebarOpen(false); }} className="w-full px-4 py-2 text-sm text-white bg-gray-900 rounded-md hover:bg-black">
                                     {t('nav.logout')}
                                 </button>
                             ) : (
@@ -240,7 +169,8 @@ const Navbar: React.FC = () => {
                             )}
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body,
             )}
         </nav>
     );
