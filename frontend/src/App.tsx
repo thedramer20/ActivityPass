@@ -9,10 +9,11 @@ import ThemeToggle from './components/ThemeToggle';
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
 import CompleteProfilePage from './pages/CompleteProfilePage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 
 const Navbar: React.FC = () => {
     const { t } = useTranslation();
-    const { tokens, logout } = useAuth();
+    const { tokens, logout, me } = useAuth();
     const navigate = useNavigate();
     const loc = useLocation();
     const isAuthPage = loc.pathname.startsWith('/auth');
@@ -33,6 +34,11 @@ const Navbar: React.FC = () => {
                                 ) : (
                                     <Link to="/auth" className="px-4 py-2 rounded-md bg-gray-900 text-white text-sm lg:text-base hover:bg-black">{t('nav.login')}</Link>
                                 )}
+                                {me?.role === 'admin' && (
+                                    <Link to="/admin" className="px-4 py-2 rounded-md border border-gray-200 dark:border-gray-700 text-sm lg:text-base text-gray-900 dark:text-gray-100">
+                                        {t('nav.admin')}
+                                    </Link>
+                                )}
                                 <LanguageSwitcher />
                                 <ThemeToggle />
                             </>
@@ -46,6 +52,11 @@ const Navbar: React.FC = () => {
                     </div>
                     {/* Mobile: remove hamburger; keep language only */}
                     <div className="sm:hidden flex items-center gap-3 pr-2">
+                        {tokens && me?.role === 'admin' && !isAuthPage && (
+                            <Link to="/admin" className="text-sm text-gray-900 dark:text-gray-100">
+                                {t('nav.admin')}
+                            </Link>
+                        )}
                         <LanguageSwitcher />
                         <ThemeToggle />
                     </div>
@@ -68,11 +79,18 @@ type Activity = {
 
 const ActivityList: React.FC = () => {
     const { t } = useTranslation();
-    const { tokens } = useAuth();
+    const navigate = useNavigate();
+    const { tokens, me } = useAuth();
     const [activities, setActivities] = useState<Activity[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+
+    useEffect(() => {
+        if (me?.role === 'admin') {
+            navigate('/admin', { replace: true });
+        }
+    }, [me, navigate]);
 
     useEffect(() => {
         fetch('/api/activities/')
@@ -150,11 +168,19 @@ const App: React.FC = () => {
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/login" element={<Navigate to="/auth" replace />} />
                 <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfilePage /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboardPage /></AdminRoute></ProtectedRoute>} />
                 <Route path="/" element={<ProtectedRoute><ActivityList /></ProtectedRoute>} />
             </Routes>
             <footer className="max-w-7xl mx-auto px-6 py-10 text-xs text-gray-500 mt-auto">© {new Date().getFullYear()} {t('app.title')}</footer>
         </div>
     );
+};
+
+const AdminRoute: React.FC<React.PropsWithChildren> = ({ children }) => {
+    const { me } = useAuth();
+    if (!me) return null;
+    if (me.role !== 'admin') return <Navigate to="/" replace />;
+    return <>{children}</>;
 };
 
 export default App;

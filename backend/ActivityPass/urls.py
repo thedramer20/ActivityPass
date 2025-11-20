@@ -35,6 +35,7 @@ router.register(r'activities', ActivityViewSet)
 router.register(r'participations', ParticipationViewSet)
 router.register(r'course-events', StudentCourseEventViewSet)
 router.register(r'student-profile', StudentProfileViewSet, basename='student-profile')
+router.register(r'admin/users', accounts_admin.AdminUserViewSet, basename='admin-users')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
