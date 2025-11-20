@@ -1,9 +1,17 @@
 {
-    "app.title": "ActivityPass",
-    "app.subtitle": "AI 辅助的学生活动管理平台",
+    "app.title": "活动通",
+    "app.titleShort": "活动通",
+    "app.subtitle": "AI辅助学生活动管理平台",
     "nav.home": "首页",
     "nav.login": "登录",
     "nav.logout": "退出",
+    "auth.register": "注册",
+    "auth.role": "身份",
+    "auth.student": "学生",
+    "auth.staff": "教职工",
+    "auth.studentId": "学号",
+    "dashboard.staff": "教职工工作台",
+    "dashboard.student": "学生工作台",
     "login.heading": "登录",
     "login.username": "用户名",
     "login.password": "密码",
@@ -17,5 +25,11 @@
     "error.generic": "错误",
     "lang.switch": "语言",
     "lang.english": "英文",
-    "lang.chinese": "中文"
+    "lang.chinese": "中文",
+    "profile.completeTitle": "完善个人信息",
+    "profile.completeSubtitle": "请确认您的姓名。其他详细信息可以稍后修改。",
+    "profile.name": "姓名",
+    "profile.phone": "电话（可选）",
+    "profile.save": "保存并继续",
+    "profile.saving": "保存中..."
 }

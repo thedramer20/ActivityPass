@@ -1,9 +1,18 @@
 {
     "app.title": "ActivityPass",
+    "app.titleShort": "AP",
+    "app.windowTitle": "ActivityPass · 活动通",
     "app.subtitle": "AI-assisted student activity management platform",
     "nav.home": "Home",
     "nav.login": "Login",
     "nav.logout": "Logout",
+    "auth.register": "Register",
+    "auth.role": "Role",
+    "auth.student": "Student",
+    "auth.staff": "Staff",
+    "auth.studentId": "Student ID",
+    "dashboard.staff": "Staff Dashboard",
+    "dashboard.student": "Student Dashboard",
     "login.heading": "Login",
     "login.username": "Username",
     "login.password": "Password",
@@ -17,5 +26,11 @@
     "error.generic": "Error",
     "lang.switch": "Language",
     "lang.english": "English",
-    "lang.chinese": "Chinese"
+    "lang.chinese": "Chinese",
+    "profile.completeTitle": "Complete your profile",
+    "profile.completeSubtitle": "Please confirm your name. You can change other details later.",
+    "profile.name": "Full name",
+    "profile.phone": "Phone (optional)",
+    "profile.save": "Save and continue",
+    "profile.saving": "Saving..."
 }
