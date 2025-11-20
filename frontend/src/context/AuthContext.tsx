@@ -58,7 +58,10 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
-        if (!res.ok) throw new Error('Invalid credentials');
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || 'invalid_credentials');
+        }
         const data = await res.json() as Tokens;
         setTokens(data);
         return data;

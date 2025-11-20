@@ -172,11 +172,15 @@ def main():
         elif not detect_node():
             print("[warn] Node.js/npm not detected; skipping frontend")
         else:
-            frontend_install(frontend_dir)
-            if args.build:
-                frontend_build(frontend_dir)
+            try:
+                frontend_install(frontend_dir)
+            except FileNotFoundError:
+                print("[error] npm command not found. Install Node.js (https://nodejs.org) and ensure npm is on your PATH.")
             else:
-                frontend_proc = frontend_start(frontend_dir, args.frontend_port)
+                if args.build:
+                    frontend_build(frontend_dir)
+                else:
+                    frontend_proc = frontend_start(frontend_dir, args.frontend_port)
 
     print("\n[done] Automation started. Press Ctrl+C to terminate.")
     print("Backend PID:", backend_proc.pid)

@@ -72,6 +72,7 @@ const ActivityList: React.FC = () => {
     const [activities, setActivities] = useState<Activity[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [notice, setNotice] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
 
     useEffect(() => {
         fetch('/api/activities/')
@@ -81,7 +82,10 @@ const ActivityList: React.FC = () => {
     }, []);
 
     const apply = async (id: number) => {
-        if (!tokens) { alert('Login first'); return; }
+        if (!tokens) {
+            setNotice({ type: 'error', text: t('auth.loginRequired') });
+            return;
+        }
         const res = await fetch(`/api/activities/${id}/apply/`, {
             method: 'POST',
             headers: {
@@ -90,16 +94,19 @@ const ActivityList: React.FC = () => {
             }
         });
         if (res.ok) {
-            alert(t('apply.success'));
+            setNotice({ type: 'success', text: t('apply.success') });
         } else {
             const data = await res.json().catch(() => ({ detail: 'Error' }));
-            alert(data.detail || t('apply.fail'));
+            setNotice({ type: 'error', text: data.detail || t('apply.fail') });
         }
     };
 
     const fmt = useMemo(() => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }), []);
     return (
         <main className="px-4 mx-auto max-w-7xl">
+            {notice && (
+                <div className={`mb-4 rounded-md border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-green-200 bg-green-50 text-green-800 dark:border-green-700 dark:bg-green-900/30 dark:text-green-100' : notice.type === 'error' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-100' : 'border-gray-200 bg-gray-50 text-gray-700 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-100'}`}>{notice.text}</div>
+            )}
             {loading && <p className="py-6 text-gray-700">{t('activities.loading')}</p>}
             {error && <p className="py-6 text-red-500">{t('error.generic')}: {error}</p>}
             {!loading && !error && (

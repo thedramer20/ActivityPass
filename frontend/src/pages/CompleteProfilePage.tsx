@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,12 @@ const CompleteProfilePage: React.FC = () => {
     const [phone, setPhone] = useState(me?.student_profile?.phone || '');
     const [saving, setSaving] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (me && me.role !== 'student') {
+            navigate('/');
+        }
+    }, [me, navigate]);
 
     const save = async (e: React.FormEvent) => {
         e.preventDefault();
