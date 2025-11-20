@@ -92,6 +92,8 @@ Both perform: create venv, install backend deps, migrate, (optional) seed studen
 3. User redirected to profile completion page if missing name.
 4. JWT access/refresh issued from `/api/token/`.
 
+Admin login: default superuser `admin`/`000000` (created by `init_app`). Use same login form. Admin can manage users via admin APIs below.
+
 ## i18n Content
 
 Activities store bilingual fields (`title_i18n`, `description_i18n`) with fallback logic. Translation helper (`backend/common/translation.py`) can populate English / Chinese using a LibreTranslate‑compatible endpoint.
@@ -102,6 +104,14 @@ Activities store bilingual fields (`title_i18n`, `description_i18n`) with fallba
 | ---------------------------------------------------- | --------------------------- |
 | `python manage.py seed_students --file data/cst.csv` | Bulk import student records |
 | `python manage.py init_app`                          | Migrate + seed in one step  |
+
+## Admin Management API
+
+- `POST /api/admin/create-staff/` body: `{ "username": "staff01", "email": "..." }` → creates staff with random 8‑digit password, returns `{ user, password }`.
+- `POST /api/admin/reset-password/` body: `{ "username": "..." }` or `{ "user_id": 123 }` → resets: students → `000000`, staff → new 8‑digit password; sets `must_change_password=true`.
+- `POST /api/admin/prompt-default-students-change/` → flags all students still on `000000` to `must_change_password=true`.
+
+Note: Only superusers (role `admin`) can call these endpoints.
 
 ## Frontend Conventions
 
