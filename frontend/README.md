@@ -1,70 +1,118 @@
-# Getting Started with Create React App
+# ActivityPass Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Modern bilingual (English / 中文) React + TypeScript interface for the ActivityPass platform (学生活动管理系统 – 活动通).
 
-## Available Scripts
+## Tech Stack
 
-In the project directory, you can run:
+| Layer     | Details                                     |
+| --------- | ------------------------------------------- |
+| Framework | React (CRA) + React Router                  |
+| Language  | TypeScript                                  |
+| Styling   | Tailwind CSS (utility-first)                |
+| i18n      | i18next + react-i18next + language detector |
+| Auth      | JWT (paired with Django REST backend)       |
+| Testing   | React Testing Library + Jest                |
 
-### `npm start`
+## Quick Start
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Install dependencies (including Tailwind + types):
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```bash
+npm install
+```
 
-### `npm test`
+Run development server with proxy to Django API:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm start
+```
 
-### `npm run build`
+Type-check only:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm run typecheck
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Run tests:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+npm test
+```
 
-### `npm run eject`
+Build production bundle:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+npm run build
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Internationalization (i18n)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Translation JSON files live in `src/locales/en/common.json` and `src/locales/zh/common.json`. Add new keys in both files, then consume via:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```tsx
+import { useTranslation } from "react-i18next";
+const { t } = useTranslation();
+return <h1>{t("app.title")}</h1>;
+```
 
-## Learn More
+Language switching is handled by `LanguageSwitcher` component; user preference persists in `localStorage`.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Tailwind Usage
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Utility classes are applied directly in JSX (e.g. `className="flex items-center gap-2"`). Configuration lives in `tailwind.config.js`; PostCSS pipeline defined in `postcss.config.js`. The `index.css` file imports Tailwind layers and applies minimal base overrides.
 
-### Code Splitting
+If your editor flags `@tailwind` / `@apply` as unknown, ensure PostCSS tooling runs via CRA dev server (no extra config required after install). Static analysis tools may need a Tailwind plugin for full recognition.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Environment & Proxy
 
-### Analyzing the Bundle Size
+The CRA dev server proxies API requests to Django at `http://127.0.0.1:8000` based on `package.json"proxy"` field. Use relative paths like `/api/activities/` in axios to leverage the proxy.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Authentication Flow
 
-### Making a Progressive Web App
+1. User submits credentials on login form.
+2. Frontend requests JWT access/refresh tokens from backend `/api/token/`.
+3. Tokens persisted (e.g. `localStorage`) by `AuthContext`.
+4. Authorized requests attach `Authorization: Bearer <access>` header.
+5. (Future) Refresh logic will silently renew access token using refresh token.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Adding a New Feature (Example Checklist)
 
-### Advanced Configuration
+1. Define/extend backend endpoint.
+2. Add TypeScript model/interface in `src/types` (create folder if not present).
+3. Create React component + route.
+4. Fetch data with axios using relative path.
+5. Add translation keys for any new user-facing strings.
+6. Style with Tailwind utilities.
+7. Write a focused test (component renders + key interaction).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Common Scripts Recap
 
-### Deployment
+| Script              | Purpose                               |
+| ------------------- | ------------------------------------- |
+| `npm start`         | Run dev server with hot reload        |
+| `npm test`          | Interactive test runner               |
+| `npm run build`     | Optimized production build            |
+| `npm run typecheck` | Standalone TypeScript type validation |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Conventions
 
-### `npm run build` fails to minify
+- Use semantic naming for translation keys: `activities.apply.success` etc.
+- Keep components small & focused; co-locate related hooks.
+- Prefer functional components + hooks.
+- Avoid inline styles; use Tailwind utilities.
+- Date formatting via `Intl.DateTimeFormat` for locale awareness.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Future Enhancements
+
+- Implement token refresh & logout.
+- Add activity creation/edit forms.
+- Integrate recommendation/eligibility previews.
+- Dark mode theme variant in Tailwind.
+
+## License
+
+Refer to repository root `LICENSE` (if present) for overall project licensing.
+
+---
+
+Generated README tailored for current stack; update as the architecture evolves.

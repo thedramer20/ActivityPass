@@ -8,8 +8,10 @@ export interface Tokens {
 
 interface AuthContextValue {
     tokens: Tokens | null;
-    user: any; // refine by your JWT payload shape if needed
+    user: any; // JWT payload
+    me?: { id: number; username: string; first_name?: string; role: 'staff' | 'student' | 'user'; student_profile?: any } | null;
     login: (username: string, password: string) => Promise<Tokens>;
+    register: (payload: { username: string; password: string; role: 'staff' | 'student'; email?: string; profile?: any }) => Promise<Tokens>;
     logout: () => void;
     setTokens: React.Dispatch<React.SetStateAction<Tokens | null>>;
 }
@@ -32,13 +34,21 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         }
     });
 
+    const [me, setMe] = useState<AuthContextValue['me']>(null);
+
     useEffect(() => {
         if (tokens) {
             localStorage.setItem('ap_tokens', JSON.stringify(tokens));
             try { setUser(jwtDecode(tokens.access)); } catch { setUser(null); }
+            // fetch /api/auth/me to get role and profile
+            fetch('/api/auth/me/', { headers: { Authorization: `Bearer ${tokens.access}` } })
+                .then(r => r.ok ? r.json() : Promise.reject(new Error('me failed')))
+                .then(setMe)
+                .catch(() => setMe(null));
         } else {
             localStorage.removeItem('ap_tokens');
             setUser(null);
+            setMe(null);
         }
     }, [tokens]);
 
@@ -54,9 +64,25 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         return data;
     };
 
+    const register: AuthContextValue['register'] = async (payload) => {
+        const res = await fetch('/api/auth/register/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || 'Registration failed');
+        }
+        const data = await res.json();
+        const tks = data.tokens as Tokens;
+        setTokens(tks);
+        return tks;
+    };
+
     const logout = () => setTokens(null);
 
-    const value = useMemo<AuthContextValue>(() => ({ tokens, user, login, logout, setTokens }), [tokens, user]);
+    const value = useMemo<AuthContextValue>(() => ({ tokens, user, me, login, register, logout, setTokens }), [tokens, user, me]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -22,12 +22,12 @@ from pathlib import Path
 from ActivityPass.health import health
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
     TokenRefreshView,
 )
 
 from activities.views import ActivityViewSet, ParticipationViewSet, StudentCourseEventViewSet, eligibility_check
 from accounts.views import StudentProfileViewSet
+from accounts.auth_views import register, me, TokenObtainOrCreateStudentView
 
 router = DefaultRouter()
 router.register(r'activities', ActivityViewSet)
@@ -40,8 +40,11 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/eligibility/<int:activity_id>/', eligibility_check, name='eligibility-check'),
     # Auth (JWT)
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/', TokenObtainOrCreateStudentView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # Unified auth
+    path('api/auth/register/', register, name='auth_register'),
+    path('api/auth/me/', me, name='auth_me'),
     # Serve React build (if built) at root.
         # Root SPA: only serve built index.html if it exists, else show helpful message.
         path('', (TemplateView.as_view(template_name='index.html') if (Path(__file__).resolve().parent.parent.parent / 'frontend' / 'build' / 'index.html').exists() else (lambda request: HttpResponse('Frontend build not found. Run: python manage.py build_frontend or use runfullstack for dev.', status=503))), name='react-app'),

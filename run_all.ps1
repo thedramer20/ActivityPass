@@ -50,7 +50,7 @@ if (-not $SkipSeed) {
 }
 
 Write-Host "[Backend] Starting Django server on $Host:$Port (new window)" -ForegroundColor Green
-Start-Process powershell -ArgumentList "-NoExit","cd `"$Backend`"; . ./.venv/Scripts/Activate.ps1; python manage.py runserver $Host`:$Port"
+Start-Process powershell -ArgumentList "-NoExit", "cd `"$Backend`"; . ./.venv/Scripts/Activate.ps1; python manage.py runserver $Host`:$Port"
 
 Pop-Location
 

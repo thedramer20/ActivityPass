@@ -168,6 +168,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+# Translation service (LibreTranslate or compatible)
+import os
+TRANSLATE_API_URL = os.environ.get('TRANSLATE_API_URL', 'https://libretranslate.com/translate')
+TRANSLATE_API_KEY = os.environ.get('TRANSLATE_API_KEY', '')
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = []
 frontend_static = FRONTEND_BUILD_DIR / 'static'

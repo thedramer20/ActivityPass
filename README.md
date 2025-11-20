@@ -71,13 +71,19 @@ npm run build
 
 ### 3. Single-Command Automation (Optional)
 
-Use provided PowerShell script at repo root:
+Cross‑platform Python runner (recommended):
+
+```bash
+python run_all.py
+```
+
+PowerShell alternative (Windows only):
 
 ```powershell
 ./run_all.ps1
 ```
 
-It will: create venv, install backend deps, migrate, seed students, start backend in a new window, install frontend deps, and start frontend dev server.
+Both perform: create venv, install backend deps, migrate, (optional) seed students, start backend, install frontend deps, and start frontend dev server. Use `python run_all.py --help` for flags (skip seed, disable frontend, build frontend, custom ports).
 
 ## Authentication Flow
 
@@ -92,10 +98,10 @@ Activities store bilingual fields (`title_i18n`, `description_i18n`) with fallba
 
 ## Key Management Commands
 
-| Command | Purpose |
-|---------|---------|
+| Command                                              | Purpose                     |
+| ---------------------------------------------------- | --------------------------- |
 | `python manage.py seed_students --file data/cst.csv` | Bulk import student records |
-| `python manage.py init_app` | Migrate + seed in one step |
+| `python manage.py init_app`                          | Migrate + seed in one step  |
 
 ## Frontend Conventions
 
@@ -137,7 +143,9 @@ python manage.py seed_students   # or init_app
 Seed script skips resetting passwords for existing users to avoid CPU cost of repeated hashing.
 
 ---
+
 Generated README; update as architecture evolves.
+
 # ActivityPass
 
 AI-assisted student activity management platform for Zhejiang Normal University (ZJNU).
