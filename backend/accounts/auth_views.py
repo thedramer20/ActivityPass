@@ -7,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.db import transaction
 
-from .models import StudentProfile
+from .models import StudentProfile, AccountMeta, SecurityPreference
 from .serializers import UserSerializer, StudentProfileSerializer
 from .utils import to_key, gender_key
 
@@ -76,6 +76,13 @@ def me(request):
     data = UserSerializer(user).data
     if hasattr(user, 'student_profile'):
         data['student_profile'] = StudentProfileSerializer(user.student_profile).data
+    prefs = SecurityPreference.get_solo()
+    data['security_preferences'] = {
+        'force_students_change_default': prefs.force_students_change_default,
+        'force_staff_change_default': prefs.force_staff_change_default,
+    }
+    meta = AccountMeta.objects.filter(user=user).first()
+    data['must_change_password'] = bool(meta and meta.must_change_password)
     return Response(data)
 
 

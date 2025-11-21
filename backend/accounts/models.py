@@ -39,3 +39,53 @@ class AccountMeta(models.Model):
 
     def __str__(self):
         return f"AccountMeta({self.user.username}, must_change_password={self.must_change_password})"
+
+
+class SecurityPreference(models.Model):
+    force_students_change_default = models.BooleanField(default=False)
+    force_staff_change_default = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "SecurityPreference()"
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+class Course(models.Model):
+    code = models.CharField(max_length=64, blank=True)
+    title = models.CharField(max_length=255)
+    course_type = models.CharField(max_length=64, blank=True)
+    teacher = models.CharField(max_length=255, blank=True)
+    location = models.CharField(max_length=255, blank=True)
+    term = models.CharField(max_length=64, blank=True)
+    first_week_monday = models.DateField(help_text="The Monday date of week 1 for the course term")
+    last_week = models.PositiveSmallIntegerField(help_text="Number of the last teaching week (relative to week 1)")
+    day_of_week = models.PositiveSmallIntegerField(help_text="1 = Monday, 7 = Sunday")
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    week_pattern = models.JSONField(default=list, blank=True, help_text="List of week numbers when this course meets")
+    source_filename = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['term', 'code', 'title']
+
+    def __str__(self):
+        return f"Course({self.code or self.title})"
+
+
+class CourseEnrollment(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrollments')
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name='course_enrollments')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('course', 'student')
+
+    def __str__(self):
+        return f"CourseEnrollment(course={self.course_id}, student={self.student_id})"

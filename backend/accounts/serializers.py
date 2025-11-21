@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import StudentProfile, AccountMeta
+from .models import StudentProfile, AccountMeta, Course, CourseEnrollment
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -44,3 +44,73 @@ class StudentProfileSerializer(serializers.ModelSerializer):
             "remaining_activity_slots",
         ]
         read_only_fields = ["activities_participated", "remaining_activity_slots"]
+
+
+class CourseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Course
+        fields = [
+            "id",
+            "code",
+            "title",
+            "course_type",
+            "teacher",
+            "location",
+            "term",
+            "first_week_monday",
+            "last_week",
+            "day_of_week",
+            "start_time",
+            "end_time",
+            "week_pattern",
+            "source_filename",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["created_at", "updated_at"]
+
+    def validate_week_pattern(self, value):
+        if value in (None, ""):
+            return []
+        if not isinstance(value, list):
+            raise serializers.ValidationError("week_pattern must be a list of weeks")
+        cleaned = []
+        for item in value:
+            try:
+                week = int(item)
+            except (TypeError, ValueError):
+                raise serializers.ValidationError("Week entries must be integers")
+            if week < 1:
+                raise serializers.ValidationError("Week numbers must be >= 1")
+            cleaned.append(week)
+        return sorted(set(cleaned))
+
+    def validate(self, attrs):
+        start = attrs.get('start_time') or getattr(self.instance, 'start_time', None)
+        end = attrs.get('end_time') or getattr(self.instance, 'end_time', None)
+        if start and end and start >= end:
+            raise serializers.ValidationError({'end_time': 'End time must be after start time.'})
+        day = attrs.get('day_of_week') or getattr(self.instance, 'day_of_week', None)
+        if day and not 1 <= day <= 7:
+            raise serializers.ValidationError({'day_of_week': 'Day of week must be between 1 (Mon) and 7 (Sun).'})
+        return attrs
+
+
+class CourseEnrollmentSerializer(serializers.ModelSerializer):
+    student_name = serializers.CharField(source='student.user.first_name', read_only=True)
+    student_username = serializers.CharField(source='student.user.username', read_only=True)
+    course_title = serializers.CharField(source='course.title', read_only=True)
+
+    class Meta:
+        model = CourseEnrollment
+        fields = [
+            'id',
+            'course',
+            'course_title',
+            'student',
+            'student_name',
+            'student_username',
+            'created_at',
+        ]
+        read_only_fields = ['created_at', 'course_title', 'student_name', 'student_username']

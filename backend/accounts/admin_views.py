@@ -7,12 +7,54 @@ from rest_framework.response import Response
 import random
 import string
 
-from .serializers import UserSerializer
-from .models import AccountMeta, StudentProfile
+from .serializers import UserSerializer, CourseSerializer, CourseEnrollmentSerializer
+from rest_framework.decorators import api_view, permission_classes
+
+# ...existing code...
+
+# Place import_courses after IsAdmin and all class definitions
+
+# ...existing code...
+
+# At the end of the file, before toggle_default_password_enforcement
+
+
+# ...existing code...
+
+# Place import_courses at the end of the file, after all class and function definitions
+
+@api_view(['POST'])
+@transaction.atomic
+def import_courses(request):
+    """Batch import courses. Body: {"courses": [CourseInput, ...]} Returns: {created: int, errors: [{index, error, data}]}"""
+    items = request.data.get('courses')
+    if not isinstance(items, list):
+        return Response({'detail': 'courses must be a list'}, status=400)
+    created = 0
+    errors = []
+    for idx, data in enumerate(items):
+        serializer = CourseSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            created += 1
+        else:
+            errors.append({'index': idx, 'error': serializer.errors, 'data': data})
+    return Response({'created': created, 'errors': errors}, status=201 if created else 400)
+from .models import AccountMeta, StudentProfile, SecurityPreference, Course, CourseEnrollment
+
+
+SPECIAL_CHARS = '!@#$%^&*'
 
 
 def _rand_digits(n: int = 8) -> str:
     return ''.join(random.choices(string.digits, k=n))
+
+
+def _rand_password(length: int = 8, include_symbols: bool = True) -> str:
+    alphabet = string.ascii_letters + string.digits
+    if include_symbols:
+        alphabet += SPECIAL_CHARS
+    return ''.join(random.choice(alphabet) for _ in range(length))
 
 
 def _ensure_meta(user):
@@ -125,6 +167,49 @@ class AdminUserViewSet(viewsets.ModelViewSet):
         return obj
 
 
+class AdminCourseViewSet(viewsets.ModelViewSet):
+    serializer_class = CourseSerializer
+    permission_classes = [IsAdmin]
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
+
+    def get_queryset(self):
+        qs = Course.objects.all()
+        term = (self.request.query_params.get('term') or '').strip()
+        if term:
+            qs = qs.filter(term__iexact=term)
+        day = self.request.query_params.get('day')
+        if day:
+            try:
+                qs = qs.filter(day_of_week=int(day))
+            except (TypeError, ValueError):
+                pass
+        q = (self.request.query_params.get('q') or '').strip()
+        if q:
+            qs = qs.filter(
+                Q(title__icontains=q) |
+                Q(code__icontains=q) |
+                Q(teacher__icontains=q) |
+                Q(location__icontains=q)
+            )
+        return qs.order_by('term', 'day_of_week', 'start_time', 'title')
+
+
+class AdminCourseEnrollmentViewSet(viewsets.ModelViewSet):
+    serializer_class = CourseEnrollmentSerializer
+    permission_classes = [IsAdmin]
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
+
+    def get_queryset(self):
+        qs = CourseEnrollment.objects.select_related('course', 'student__user')
+        course_id = self.request.query_params.get('course')
+        if course_id:
+            qs = qs.filter(course_id=course_id)
+        student_id = self.request.query_params.get('student')
+        if student_id:
+            qs = qs.filter(student_id=student_id)
+        return qs.order_by('-created_at')
+
+
 @api_view(['POST'])
 @permission_classes([IsAdmin])
 @transaction.atomic
@@ -142,7 +227,7 @@ def create_staff(request):
     User = get_user_model()
     if User.objects.filter(username=username).exists():
         return Response({'detail': 'username already exists'}, status=400)
-    pwd = _rand_digits(8)
+    pwd = _rand_password(8)
     user = User.objects.create_user(username=username, email=email or '', password=pwd)
     if full_name:
         user.first_name = full_name
@@ -236,9 +321,9 @@ def reset_password(request):
         if hasattr(user, 'student_profile'):
             new_pw = '000000'
         elif user.is_staff:
-            new_pw = _rand_digits(8)
+            new_pw = _rand_password(8)
         else:
-            new_pw = _rand_digits(10)
+            new_pw = _rand_password(10)
     user.set_password(new_pw)
     user.save()
     meta = _ensure_meta(user)
@@ -247,20 +332,52 @@ def reset_password(request):
     return Response({'user': UserSerializer(user).data, 'password': new_pw})
 
 
-@api_view(['POST'])
-@permission_classes([IsAdmin])
-@transaction.atomic
-def prompt_default_students_change(request):
-    """Mark all students still using default '000000' password to must_change_password.
-    Returns: {flagged: int}
-    """
+def _toggle_default_flag(role: str, enabled: bool) -> int:
+    """Flag accounts of given role to change password when toggled on."""
     User = get_user_model()
     flagged = 0
-    for user in User.objects.all().select_related('student_profile'):
-        if hasattr(user, 'student_profile') and user.check_password('000000'):
+    if enabled:
+        qs = User.objects.all().select_related('student_profile')
+        if role == 'student':
+            qs = qs.filter(student_profile__isnull=False)
+        elif role == 'staff':
+            qs = qs.filter(is_staff=True, is_superuser=False)
+        for user in qs:
             meta = _ensure_meta(user)
             if not meta.must_change_password:
                 meta.must_change_password = True
                 meta.save()
                 flagged += 1
-    return Response({'flagged': flagged})
+    return flagged
+
+
+@api_view(['POST'])
+@permission_classes([IsAdmin])
+@transaction.atomic
+def toggle_default_password_enforcement(request):
+    """Toggle forced password change for students or staff.
+    Body: {"role": "student"|"staff", "enabled": bool}
+    Returns: {"role": role, "enabled": bool, "flagged": int}
+    """
+    role = request.data.get('role')
+    if role not in ('student', 'staff'):
+        return Response({'detail': 'invalid role'}, status=400)
+    enabled = bool(request.data.get('enabled'))
+    prefs = SecurityPreference.get_solo()
+    if role == 'student':
+        prefs.force_students_change_default = enabled
+    else:
+        prefs.force_staff_change_default = enabled
+    prefs.save()
+    flagged = _toggle_default_flag(role, enabled)
+    return Response({'role': role, 'enabled': enabled, 'flagged': flagged})
+
+
+@api_view(['GET'])
+@permission_classes([IsAdmin])
+def get_security_preferences(request):
+    prefs = SecurityPreference.get_solo()
+    return Response({
+        'force_students_change_default': prefs.force_students_change_default,
+        'force_staff_change_default': prefs.force_staff_change_default,
+    })
