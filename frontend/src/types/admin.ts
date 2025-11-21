@@ -41,6 +41,7 @@ export type AdminCourse = {
     day_of_week: number;
     start_time: string;
     end_time: string;
+    periods: number[];
     week_pattern: number[];
     source_filename: string;
     created_at: string;
