@@ -13,8 +13,7 @@ const defaultCourseForm = () => ({
     first_week_monday: '',
     last_week: '16',
     day_of_week: '1',
-    start_time: '08:00',
-    end_time: '09:40',
+    periods_text: '',
     week_pattern_text: '',
     source_filename: '',
 });
@@ -84,7 +83,7 @@ const AdminCoursesPage: React.FC = () => {
     }, [courses, search, termFilter, dayFilter]);
 
     const formatDay = (value: number) => t(`admin.weekday.${value}`, { defaultValue: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][value - 1] });
-    const formatTime = (course: AdminCourse) => `${course.start_time} – ${course.end_time}`;
+    const formatPeriods = (course: AdminCourse) => (course.periods?.length ? course.periods.join(', ') : '—');
     const formatWeeks = (course: AdminCourse) => (course.week_pattern?.length ? course.week_pattern.join(', ') : '—');
 
 
@@ -106,8 +105,7 @@ const AdminCoursesPage: React.FC = () => {
             first_week_monday: course.first_week_monday || '',
             last_week: String(course.last_week || ''),
             day_of_week: String(course.day_of_week || 1),
-            start_time: course.start_time || '08:00',
-            end_time: course.end_time || '09:40',
+            periods_text: (course.periods || []).join(', '),
             week_pattern_text: (course.week_pattern || []).join(', '),
             source_filename: course.source_filename || '',
         });
@@ -131,6 +129,16 @@ const AdminCoursesPage: React.FC = () => {
             .sort((a, b) => a - b);
     };
 
+    const parsePeriods = (value: string) => {
+        if (!value.trim()) return [];
+        return value.split(',')
+            .map(part => part.trim())
+            .filter(Boolean)
+            .map(item => parseInt(item, 10))
+            .filter(num => !Number.isNaN(num) && num > 0)
+            .sort((a, b) => a - b);
+    };
+
     const submitCourse = async (evt: React.FormEvent) => {
         evt.preventDefault();
         if (!tokens) return;
@@ -145,8 +153,7 @@ const AdminCoursesPage: React.FC = () => {
             first_week_monday: form.first_week_monday,
             last_week: Number(form.last_week) || 1,
             day_of_week: Number(form.day_of_week) || 1,
-            start_time: form.start_time,
-            end_time: form.end_time,
+            periods: parsePeriods(form.periods_text),
             week_pattern: parseWeekPattern(form.week_pattern_text),
             source_filename: form.source_filename.trim(),
         };
@@ -235,7 +242,7 @@ const AdminCoursesPage: React.FC = () => {
                                     <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.title')}</th>
                                     <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.teacher')}</th>
                                     <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.day')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.time')}</th>
+                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.periods')}</th>
                                     <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.weeks')}</th>
                                     <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.location')}</th>
                                     <th className="px-4 py-2 whitespace-nowrap" />
@@ -261,7 +268,7 @@ const AdminCoursesPage: React.FC = () => {
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap">{course.teacher || '—'}</td>
                                         <td className="px-4 py-2 whitespace-nowrap">{formatDay(course.day_of_week)}</td>
-                                        <td className="px-4 py-2 whitespace-nowrap">{formatTime(course)}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">{formatPeriods(course)}</td>
                                         <td className="px-4 py-2 whitespace-nowrap">{formatWeeks(course)}</td>
                                         <td className="px-4 py-2 whitespace-nowrap">{course.location || '—'}</td>
                                         <td className="px-4 py-2 text-right whitespace-nowrap">
@@ -347,12 +354,8 @@ const AdminCoursesPage: React.FC = () => {
                                     </select>
                                 </label>
                                 <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
-                                    {t('admin.courseForm.start')}
-                                    <input type="time" value={form.start_time} onChange={e => setForm(prev => ({ ...prev, start_time: e.target.value }))} className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900" />
-                                </label>
-                                <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
-                                    {t('admin.courseForm.end')}
-                                    <input type="time" value={form.end_time} onChange={e => setForm(prev => ({ ...prev, end_time: e.target.value }))} className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900" />
+                                    {t('admin.courseForm.periods')}
+                                    <input value={form.periods_text} onChange={e => setForm(prev => ({ ...prev, periods_text: e.target.value }))} placeholder="1,2,3" className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900" />
                                 </label>
                             </div>
                             <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">

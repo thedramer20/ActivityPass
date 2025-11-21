@@ -1,12 +1,12 @@
 """Cross-platform automation script for ActivityPass.
 
 Sets up backend virtual environment, installs dependencies, runs migrations,
-optionally seeds students, then starts Django dev server. Afterwards installs
+optionally seeds students and courses, then starts Django dev server. Afterwards installs
 frontend npm packages and optionally starts React dev server or builds production.
 
 Usage:
     python run_all.py                # full setup + start backend + frontend dev
-    python run_all.py --skip-seed    # skip student seeding
+    python run_all.py --skip-seed    # skip student and course seeding
     python run_all.py --no-frontend  # only backend
     python run_all.py --build        # build frontend instead of starting dev server
     python run_all.py --host 0.0.0.0 --port 8000 --frontend-port 3000
@@ -15,7 +15,7 @@ Flags:
     --python PATH        Override Python executable to create venv.
     --backend-dir PATH   Custom backend directory (default: ./backend)
     --frontend-dir PATH  Custom frontend directory (default: ./frontend)
-    --skip-seed          Skip seeding students.
+    --skip-seed          Skip seeding students and courses.
     --no-frontend        Do not run any frontend steps.
     --build              Run production build (`npm run build`) instead of dev server.
     --host HOST          Backend host (default 127.0.0.1).

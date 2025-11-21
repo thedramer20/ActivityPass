@@ -63,6 +63,7 @@ class CourseSerializer(serializers.ModelSerializer):
             "day_of_week",
             "start_time",
             "end_time",
+            "periods",
             "week_pattern",
             "source_filename",
             "created_at",
@@ -84,6 +85,22 @@ class CourseSerializer(serializers.ModelSerializer):
             if week < 1:
                 raise serializers.ValidationError("Week numbers must be >= 1")
             cleaned.append(week)
+        return sorted(set(cleaned))
+
+    def validate_periods(self, value):
+        if value in (None, ""):
+            return []
+        if not isinstance(value, list):
+            raise serializers.ValidationError("periods must be a list of period numbers")
+        cleaned = []
+        for item in value:
+            try:
+                period = int(item)
+            except (TypeError, ValueError):
+                raise serializers.ValidationError("Period entries must be integers")
+            if not 1 <= period <= 13:
+                raise serializers.ValidationError("Period numbers must be between 1 and 13")
+            cleaned.append(period)
         return sorted(set(cleaned))
 
     def validate(self, attrs):

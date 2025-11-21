@@ -319,7 +319,7 @@ const AdminStaffPage: React.FC = () => {
                                 <input value={form.full_name} onChange={e => setForm(prev => ({ ...prev, full_name: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900" />
                             </label>
                             <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                Email
+                                {t('admin.table.email')}
                                 <input value={form.email} onChange={e => setForm(prev => ({ ...prev, email: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900" />
                             </label>
                             <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">

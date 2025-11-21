@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 
 
 class Command(BaseCommand):
-    help = "Run migrations and seed initial student data from backend/accounts/seed_data/students.csv"
+    help = "Run migrations and seed initial student and course data"
 
     def handle(self, *args, **options):
         call_command('migrate')
@@ -12,6 +12,10 @@ class Command(BaseCommand):
             call_command('seed_students')
         except Exception as e:
             self.stderr.write(self.style.WARNING(f'seed_students failed: {e}'))
+        try:
+            call_command('seed_courses')
+        except Exception as e:
+            self.stderr.write(self.style.WARNING(f'seed_courses failed: {e}'))
         # Ensure superuser 'admin' with default password exists (dev convenience)
         try:
             User = get_user_model()
