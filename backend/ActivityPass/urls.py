@@ -35,6 +35,8 @@ router.register(r'participations', ParticipationViewSet)
 router.register(r'course-events', StudentCourseEventViewSet)
 router.register(r'student-profile', StudentProfileViewSet, basename='student-profile')
 router.register(r'admin/users', accounts_admin.AdminUserViewSet, basename='admin-users')
+router.register(r'admin/courses', accounts_admin.AdminCourseViewSet, basename='admin-courses')
+router.register(r'admin/course-enrollments', accounts_admin.AdminCourseEnrollmentViewSet, basename='admin-course-enrollments')
 
 FRONTEND_INDEX = Path(__file__).resolve().parent.parent.parent / 'frontend' / 'build' / 'index.html'
 
@@ -58,7 +60,9 @@ urlpatterns = [
     path('api/admin/create-staff/', accounts_admin.create_staff, name='admin_create_staff'),
     path('api/admin/create-student/', accounts_admin.create_student, name='admin_create_student'),
     path('api/admin/reset-password/', accounts_admin.reset_password, name='admin_reset_password'),
-    path('api/admin/prompt-default-students-change/', accounts_admin.prompt_default_students_change, name='admin_prompt_default_students_change'),
+    path('api/admin/courses/import/', accounts_admin.import_courses, name='admin_courses_import'),
+    path('api/admin/security/preferences/', accounts_admin.get_security_preferences, name='admin_security_preferences'),
+    path('api/admin/security/toggle/', accounts_admin.toggle_default_password_enforcement, name='admin_security_toggle'),
     # Serve React build (if built) for all remaining GET routes.
     re_path(r'^(?!api/|health/).*$', spa_view, name='react-app'),
     path('health/', health, name='health'),

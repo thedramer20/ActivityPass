@@ -39,6 +39,7 @@ staticfiles/
 frontend/node_modules/
 frontend/build/
 *.tsbuildinfo
+frontend/test/output/
 
 # Logs
 npm-debug.log*
