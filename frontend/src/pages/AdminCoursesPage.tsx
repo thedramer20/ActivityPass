@@ -11,18 +11,31 @@ const defaultCourseForm = () => ({
     location: '',
     term: '',
     first_week_monday: '',
-    last_week: '16',
     day_of_week: '1',
-    start_time: '',
-    end_time: '',
-    periods_text: '',
-    week_pattern_text: '',
-    source_filename: '',
+    periods: [] as number[],
+    week_pattern: [] as number[],
 });
 
 type CourseFormState = ReturnType<typeof defaultCourseForm>;
 
 const weekdayKeys = [1, 2, 3, 4, 5, 6, 7] as const;
+
+// Section → time mapping (24h)
+const SECTION_TIMES: Record<number, [string, string]> = {
+    1: ["08:00", "08:40"],
+    2: ["08:45", "09:25"],
+    3: ["09:40", "10:20"],
+    4: ["10:35", "11:15"],
+    5: ["11:20", "12:00"],
+    6: ["14:00", "14:40"],
+    7: ["14:45", "15:25"],
+    8: ["15:40", "16:20"],
+    9: ["16:30", "17:10"],
+    10: ["18:00", "18:40"],
+    11: ["18:45", "19:25"],
+    12: ["19:40", "20:20"],
+    13: ["20:30", "21:10"],
+};
 
 const AdminCoursesPage: React.FC = () => {
     const { tokens } = useAuth();
@@ -85,8 +98,14 @@ const AdminCoursesPage: React.FC = () => {
     }, [courses, search, termFilter, dayFilter]);
 
     const formatTime = (course: AdminCourse) => {
-        if (course.start_time && course.end_time) {
-            return `${course.start_time} - ${course.end_time}`;
+        if (course.periods && course.periods.length > 0) {
+            const minPeriod = Math.min(...course.periods);
+            const maxPeriod = Math.max(...course.periods);
+            const startTime = SECTION_TIMES[minPeriod]?.[0];
+            const endTime = SECTION_TIMES[maxPeriod]?.[1];
+            if (startTime && endTime) {
+                return `${startTime} - ${endTime}`;
+            }
         }
         return '—';
     };
@@ -112,13 +131,9 @@ const AdminCoursesPage: React.FC = () => {
             location: course.location || '',
             term: course.term || '',
             first_week_monday: course.first_week_monday || '',
-            last_week: String(course.last_week || ''),
             day_of_week: String(course.day_of_week || 1),
-            start_time: course.start_time || '',
-            end_time: course.end_time || '',
-            periods_text: (course.periods || []).join(', '),
-            week_pattern_text: (course.week_pattern || []).join(', '),
-            source_filename: course.source_filename || '',
+            periods: course.periods || [],
+            week_pattern: course.week_pattern || [],
         });
         setModalOpen(true);
     };
@@ -128,26 +143,6 @@ const AdminCoursesPage: React.FC = () => {
         setSaving(false);
         setEditingCourse(null);
         setForm(defaultCourseForm());
-    };
-
-    const parseWeekPattern = (value: string) => {
-        if (!value.trim()) return [];
-        return value.split(',')
-            .map(part => part.trim())
-            .filter(Boolean)
-            .map(item => parseInt(item, 10))
-            .filter(num => !Number.isNaN(num) && num > 0)
-            .sort((a, b) => a - b);
-    };
-
-    const parsePeriods = (value: string) => {
-        if (!value.trim()) return [];
-        return value.split(',')
-            .map(part => part.trim())
-            .filter(Boolean)
-            .map(item => parseInt(item, 10))
-            .filter(num => !Number.isNaN(num) && num > 0)
-            .sort((a, b) => a - b);
     };
 
     const submitCourse = async (evt: React.FormEvent) => {
@@ -162,13 +157,9 @@ const AdminCoursesPage: React.FC = () => {
             location: form.location.trim(),
             term: form.term.trim(),
             first_week_monday: form.first_week_monday,
-            last_week: Number(form.last_week) || 1,
             day_of_week: Number(form.day_of_week) || 1,
-            start_time: form.start_time || null,
-            end_time: form.end_time || null,
-            periods: parsePeriods(form.periods_text),
-            week_pattern: parseWeekPattern(form.week_pattern_text),
-            source_filename: form.source_filename.trim(),
+            periods: form.periods,
+            week_pattern: form.week_pattern,
         };
         try {
             const url = editingCourse ? `/api/admin/courses/${editingCourse.id}/` : '/api/admin/courses/';
@@ -275,10 +266,20 @@ const AdminCoursesPage: React.FC = () => {
                                 )}
                                 {filteredCourses.map(course => (
                                     <tr key={course.id} className="border-t border-gray-100 dark:border-gray-800">
-                                        <td className="px-4 py-2 whitespace-nowrap">{course.term || '—'}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">
+                                            {course.term === 'first' ? t('admin.courseForm.term.first') : 
+                                             course.term === 'second' ? t('admin.courseForm.term.second') : 
+                                             course.term || '—'}
+                                        </td>
                                         <td className="px-4 py-2">
                                             <p className="font-medium text-gray-900 dark:text-gray-100">{course.title}</p>
-                                            <p className="text-xs text-gray-500">{course.code || '—'} · {course.course_type || '—'}</p>
+                                            <p className="text-xs text-gray-500">{course.code || '—'} · {
+                                                course.course_type === 'Theory' ? t('admin.courseForm.type.theory') :
+                                                course.course_type === 'Technical' ? t('admin.courseForm.type.technical') :
+                                                course.course_type === 'Practice' ? t('admin.courseForm.type.practice') :
+                                                course.course_type === 'Experiment' ? t('admin.courseForm.type.experiment') :
+                                                course.course_type || '—'
+                                            }</p>
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap">{course.teacher || '—'}</td>
                                         <td className="px-4 py-2 whitespace-nowrap">{formatDay(course.day_of_week)}</td>
@@ -328,7 +329,13 @@ const AdminCoursesPage: React.FC = () => {
                                 </label>
                                 <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
                                     {t('admin.courseForm.type')}
-                                    <input value={form.course_type} onChange={e => setForm(prev => ({ ...prev, course_type: e.target.value }))} className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900" />
+                                    <select value={form.course_type} onChange={e => setForm(prev => ({ ...prev, course_type: e.target.value }))} className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900">
+                                        <option value="">{t('admin.courseForm.type')}</option>
+                                        <option value="Theory">{t('admin.courseForm.type.theory')}</option>
+                                        <option value="Technical">{t('admin.courseForm.type.technical')}</option>
+                                        <option value="Practice">{t('admin.courseForm.type.practice')}</option>
+                                        <option value="Experiment">{t('admin.courseForm.type.experiment')}</option>
+                                    </select>
                                 </label>
                             </div>
                             <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
@@ -348,18 +355,16 @@ const AdminCoursesPage: React.FC = () => {
                             <div className="grid gap-4 sm:grid-cols-3">
                                 <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
                                     {t('admin.courseForm.term')}
-                                    <input value={form.term} onChange={e => setForm(prev => ({ ...prev, term: e.target.value }))} className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900" />
+                                    <select value={form.term} onChange={e => setForm(prev => ({ ...prev, term: e.target.value }))} className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900">
+                                        <option value="">{t('admin.courseForm.term')}</option>
+                                        <option value="first">{t('admin.courseForm.term.first')}</option>
+                                        <option value="second">{t('admin.courseForm.term.second')}</option>
+                                    </select>
                                 </label>
                                 <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
                                     {t('admin.courseForm.firstWeek')}
                                     <input type="date" value={form.first_week_monday} onChange={e => setForm(prev => ({ ...prev, first_week_monday: e.target.value }))} required className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900" />
                                 </label>
-                                <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
-                                    {t('admin.courseForm.lastWeek')}
-                                    <input type="number" min={1} max={30} value={form.last_week} onChange={e => setForm(prev => ({ ...prev, last_week: e.target.value }))} className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900" />
-                                </label>
-                            </div>
-                            <div className="grid gap-4 sm:grid-cols-3">
                                 <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
                                     {t('admin.courseForm.day')}
                                     <select value={form.day_of_week} onChange={e => setForm(prev => ({ ...prev, day_of_week: e.target.value }))} className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900">
@@ -368,23 +373,55 @@ const AdminCoursesPage: React.FC = () => {
                                         ))}
                                     </select>
                                 </label>
-                                <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
-                                    {t('admin.courseForm.startTime')}
-                                    <input type="time" value={form.start_time} onChange={e => setForm(prev => ({ ...prev, start_time: e.target.value }))} className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900" />
-                                </label>
-                                <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
-                                    {t('admin.courseForm.endTime')}
-                                    <input type="time" value={form.end_time} onChange={e => setForm(prev => ({ ...prev, end_time: e.target.value }))} className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900" />
-                                </label>
                             </div>
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
                                     {t('admin.courseForm.periods')}
-                                    <input value={form.periods_text} onChange={e => setForm(prev => ({ ...prev, periods_text: e.target.value }))} placeholder="1,2,3" className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900" />
+                                    <div className="grid grid-cols-4 gap-2 p-3 bg-gray-50 border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700">
+                                        {Array.from({ length: 13 }, (_, i) => i + 1).map(session => (
+                                            <label key={session} className="flex items-center gap-1 text-xs">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={form.periods.includes(session)}
+                                                    onChange={e => {
+                                                        const checked = e.target.checked;
+                                                        setForm(prev => ({
+                                                            ...prev,
+                                                            periods: checked
+                                                                ? [...prev.periods, session].sort((a, b) => a - b)
+                                                                : prev.periods.filter(p => p !== session)
+                                                        }));
+                                                    }}
+                                                    className="w-3 h-3"
+                                                />
+                                                {session}
+                                            </label>
+                                        ))}
+                                    </div>
                                 </label>
                                 <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
-                                    {t('admin.courseForm.source')}
-                                    <input value={form.source_filename} onChange={e => setForm(prev => ({ ...prev, source_filename: e.target.value }))} className="px-3 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900" />
+                                    {t('admin.courseForm.weeks')}
+                                    <div className="grid grid-cols-5 gap-2 p-3 bg-gray-50 border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 max-h-32 overflow-y-auto">
+                                        {Array.from({ length: 17 }, (_, i) => i + 1).map(week => (
+                                            <label key={week} className="flex items-center gap-1 text-xs">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={form.week_pattern.includes(week)}
+                                                    onChange={e => {
+                                                        const checked = e.target.checked;
+                                                        setForm(prev => ({
+                                                            ...prev,
+                                                            week_pattern: checked
+                                                                ? [...prev.week_pattern, week].sort((a, b) => a - b)
+                                                                : prev.week_pattern.filter(w => w !== week)
+                                                        }));
+                                                    }}
+                                                    className="w-3 h-3"
+                                                />
+                                                {week}
+                                            </label>
+                                        ))}
+                                    </div>
                                 </label>
                             </div>
                             <div className="flex justify-end gap-3 pt-2">

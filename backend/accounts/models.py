@@ -63,13 +63,9 @@ class Course(models.Model):
     location = models.CharField(max_length=255, blank=True)
     term = models.CharField(max_length=64, blank=True)
     first_week_monday = models.DateField(help_text="The Monday date of week 1 for the course term")
-    last_week = models.PositiveSmallIntegerField(help_text="Number of the last teaching week (relative to week 1)")
     day_of_week = models.PositiveSmallIntegerField(help_text="1 = Monday, 7 = Sunday")
-    start_time = models.TimeField(null=True, blank=True)
-    end_time = models.TimeField(null=True, blank=True)
     periods = models.JSONField(default=list, blank=True, help_text="List of period numbers (1-13) when this course meets")
     week_pattern = models.JSONField(default=list, blank=True, help_text="List of week numbers when this course meets")
-    source_filename = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
