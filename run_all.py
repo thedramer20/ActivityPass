@@ -138,24 +138,46 @@ def install_backend_deps(py: Path, backend_dir: Path):
         package_count = len(packages)
         print(f"[backend] Checking Python dependencies ({package_count} packages)...")
         
-        # Check if pip needs upgrade
-        code, _, _ = run_with_output([str(py), "-m", "pip", "list", "--outdated", "--format=json"])
+        # Check if required packages are installed by trying to import them or checking pip list
+        installed_packages = []
+        code, stdout, _ = run_with_output([str(py), "-m", "pip", "list", "--format=json"])
         if code == 0:
-            print("[backend] Python dependencies are up to date")
+            try:
+                import json
+                installed = json.loads(stdout)
+                installed_packages = [pkg['name'].lower() for pkg in installed]
+            except (json.JSONDecodeError, KeyError):
+                pass
+        
+        # Check if all required packages are installed
+        missing_packages = []
+        for package_line in packages:
+            # Extract package name (handle version specifiers like django==4.2.0)
+            # Also handle conditional dependencies like "package>=1.0 ; condition"
+            package_spec = package_line.split(';')[0].strip()  # Remove condition if present
+            package_name = package_spec.split('==')[0].split('>=')[0].split('>')[0].split('<')[0].split('<=')[0].strip().lower()
+            # Convert hyphens to underscores to match pip's normalization
+            package_name_normalized = package_name.replace('-', '_')
+            if package_name not in installed_packages and package_name_normalized not in installed_packages:
+                missing_packages.append(package_line)
+        
+        if not missing_packages:
+            print("[backend] ✓ Python dependencies are already installed")
             return
-            
-        # If we get here, try to install/upgrade
-        print("[backend] Installing/updating Python dependencies...")
+        
+        print(f"[backend] Installing {len(missing_packages)} missing Python dependencies...")
+        
+        # Upgrade pip first
         code = run([str(py), "-m", "pip", "install", "--upgrade", "pip"], quiet=True)
+        if code != 0:
+            print("[backend] ⚠ Failed to upgrade pip, continuing with installation...")
+        
+        # Install requirements
+        code = run([str(py), "-m", "pip", "install", "-r", str(req)], quiet=True)
         if code == 0:
-            code = run([str(py), "-m", "pip", "install", "-r", str(req)], quiet=True)
-            if code == 0:
-                print("[backend] ✓ Python dependencies installed successfully")
-            else:
-                print("[backend] ✗ Failed to install Python dependencies")
-                sys.exit(code)
+            print("[backend] ✓ Python dependencies installed successfully")
         else:
-            print("[backend] ✗ Failed to upgrade pip")
+            print("[backend] ✗ Failed to install Python dependencies")
             sys.exit(code)
     else:
         print("[backend] requirements.txt not found; skipping install")
