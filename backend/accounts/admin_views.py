@@ -81,14 +81,15 @@ class AdminUserSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     must_change_password = serializers.SerializerMethodField()
     staff_number = serializers.CharField(source='account_meta.staff_number', required=False, allow_blank=True)
+    phone = serializers.SerializerMethodField()
 
     class Meta:
         model = get_user_model()
         fields = [
             'id', 'username', 'first_name', 'last_name', 'email', 'role',
-            'must_change_password', 'student_profile', 'staff_number'
+            'must_change_password', 'student_profile', 'staff_number', 'phone'
         ]
-        read_only_fields = ['id', 'username', 'role', 'must_change_password']
+        read_only_fields = ['id', 'username', 'role', 'must_change_password', 'phone']
 
     def get_role(self, obj):
         if obj.is_superuser:
@@ -100,6 +101,12 @@ class AdminUserSerializer(serializers.ModelSerializer):
     def get_must_change_password(self, obj):
         meta = getattr(obj, 'account_meta', None)
         return bool(meta and meta.must_change_password)
+
+    def get_phone(self, obj):
+        if hasattr(obj, 'student_profile') and obj.student_profile:
+            return obj.student_profile.phone
+        meta = getattr(obj, 'account_meta', None)
+        return meta.staff_number if meta else None
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('student_profile', None)

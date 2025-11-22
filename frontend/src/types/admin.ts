@@ -21,6 +21,7 @@ export type AdminUser = {
     must_change_password?: boolean;
     student_profile?: StudentProfile | null;
     staff_number?: string | null;
+    phone?: string | null;
 };
 
 export type SecurityPreferences = {
