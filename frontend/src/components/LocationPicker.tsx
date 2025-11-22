@@ -6,13 +6,13 @@ import 'leaflet/dist/leaflet.css';
 // Load AMap JavaScript API
 const loadAMapScript = () => {
     return new Promise<void>((resolve, reject) => {
-        if ((window as any).AMap) {
+        if ((window as any).AMap && (window as any).AMap.Geolocation && (window as any).AMap.Geocoder) {
             resolve();
             return;
         }
 
         // Get AMap API key from environment variables
-        const amapKey = process.env.REACT_APP_AMAP_KEY || process.env.VITE_AMAP_KEY;
+        const amapKey = import.meta.env.REACT_APP_AMAP_KEY || import.meta.env.VITE_AMAP_KEY;
 
         if (!amapKey || amapKey === 'your_amap_api_key_here') {
             reject(new Error('AMap API key not configured. Please set REACT_APP_AMAP_KEY or VITE_AMAP_KEY environment variable.'));
@@ -22,7 +22,18 @@ const loadAMapScript = () => {
         const script = document.createElement('script');
         script.src = `https://webapi.amap.com/maps?v=2.0&key=${amapKey}&plugin=AMap.Geolocation,AMap.Geocoder`;
         script.async = true;
-        script.onload = () => resolve();
+
+        script.onload = () => {
+            // Wait a bit for AMap to fully initialize
+            setTimeout(() => {
+                if ((window as any).AMap) {
+                    resolve();
+                } else {
+                    reject(new Error('AMap failed to initialize'));
+                }
+            }, 1000);
+        };
+
         script.onerror = () => reject(new Error('Failed to load AMap script'));
         document.head.appendChild(script);
     });
@@ -55,7 +66,7 @@ const checkGeolocationPermission = async (): Promise<'granted' | 'denied' | 'pro
     if (!navigator.permissions) {
         return 'unknown';
     }
-    
+
     try {
         const result = await navigator.permissions.query({ name: 'geolocation' });
         return result.state as 'granted' | 'denied' | 'prompt';
@@ -65,110 +76,108 @@ const checkGeolocationPermission = async (): Promise<'granted' | 'denied' | 'pro
     }
 };
 
-// Helper function to request location using AMap's geolocation service
+// Helper function to request location using browser geolocation first (like AMap website)
 const requestLocationAMap = (): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
-        // Try to use AMap's geolocation if available
-        if ((window as any).AMap && (window as any).AMap.Geolocation) {
-            const geolocation = new (window as any).AMap.Geolocation({
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 300000, // 5 minutes
-                convert: true,
-                showButton: false,
-                showMarker: false,
-                showCircle: false,
-                panToLocation: false,
-                zoomToAccuracy: false
-            });
-
-            geolocation.getCurrentPosition((status: string, result: any) => {
-                if (status === 'complete' && result && result.position) {
-                    // Convert AMap position to GeolocationPosition format
-                    const position = {
-                        coords: {
-                            latitude: result.position.lat,
-                            longitude: result.position.lng,
-                            accuracy: result.accuracy || 100,
-                            altitude: null,
-                            altitudeAccuracy: null,
-                            heading: null,
-                            speed: null
-                        },
-                        timestamp: Date.now()
-                    };
-                    resolve(position as GeolocationPosition);
-                } else {
-                    reject(new Error('AMap geolocation failed'));
-                }
-            });
-        } else {
-            // Fallback to browser geolocation
-            if (!navigator.geolocation) {
-                reject(new Error('Geolocation not supported'));
-                return;
-            }
-
+        // First try browser geolocation directly (like AMap website does)
+        if (navigator.geolocation) {
+            console.log('Trying browser geolocation first...');
             const options = {
                 enableHighAccuracy: true,
-                timeout: 15000,
-                maximumAge: 60000
+                timeout: 10000, // 10 second timeout like AMap website
+                maximumAge: 300000 // 5 minutes cache
             };
 
-            navigator.geolocation.getCurrentPosition(resolve, reject, options);
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    console.log('Browser geolocation successful:', {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        accuracy: position.coords.accuracy
+                    });
+                    resolve(position);
+                },
+                (error) => {
+                    console.warn('Browser geolocation failed, trying AMap:', error);
+
+                    // Fallback to AMap geolocation if browser GPS fails
+                    if ((window as any).AMap && (window as any).AMap.Geolocation) {
+                        const geolocation = new (window as any).AMap.Geolocation({
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 60000,
+                            convert: true,
+                            showButton: false,
+                            showMarker: false,
+                            showCircle: false,
+                            panToLocation: false,
+                            zoomToAccuracy: false,
+                            extensions: 'all',
+                            GeoLocationFirst: true,
+                            noIpLocate: false,
+                            noGeoLocation: false
+                        });
+
+                        geolocation.getCurrentPosition((status: string, result: any) => {
+                            if (status === 'complete' && result && result.position) {
+                                // Convert AMap position to GeolocationPosition format
+                                const position = {
+                                    coords: {
+                                        latitude: result.position.lat,
+                                        longitude: result.position.lng,
+                                        accuracy: result.accuracy || 100,
+                                        altitude: result.altitude || null,
+                                        altitudeAccuracy: result.altitudeAccuracy || null,
+                                        heading: result.heading || null,
+                                        speed: result.speed || null
+                                    },
+                                    timestamp: Date.now()
+                                };
+                                console.log('AMap geolocation fallback successful:', {
+                                    lat: position.coords.latitude,
+                                    lng: position.coords.longitude,
+                                    accuracy: position.coords.accuracy
+                                });
+                                resolve(position as GeolocationPosition);
+                            } else {
+                                console.warn('AMap geolocation also failed with status:', status, result);
+                                reject(new Error(`Both browser and AMap geolocation failed`));
+                            }
+                        });
+                    } else {
+                        console.warn('AMap not available for fallback');
+                        reject(new Error('Geolocation not available'));
+                    }
+                },
+                options
+            );
+        } else {
+            reject(new Error('Geolocation not supported'));
         }
     });
 };
 
-// Helper function to get location from IP address (using Chinese services that work in China)
-const getLocationFromIP = async (): Promise<Location | null> => {
+// Helper function to get location from IP address with better VPN detection
+const getLocationFromIP = async (): Promise<{location: Location | null, isLikelyVPN: boolean, confidence: number}> => {
     try {
-        // Try Chinese IP location services that work in China without VPN
+        // Multiple IP geolocation services for better accuracy and VPN detection
         const services = [
-            {
-                name: 'ip.cn',
-                url: 'https://ip.cn/api/index?ip=&type=0',
-                parse: (data: any) => {
-                    if (data.address && data.ip) {
-                        return {
-                            ip: data.ip,
-                            city: data.address.split(' ')[0] || 'Unknown',
-                            country: 'China',
-                            lat: 39.9042, // Beijing default
-                            lng: 116.4074
-                        };
-                    }
-                    return null;
-                }
-            },
-            {
-                name: 'Baidu IP Location',
-                url: 'https://api.map.baidu.com/location/ip?ak=your_baidu_key&coor=bd09ll',
-                parse: (data: any) => {
-                    // Baidu IP location response format
-                    if (data.status === 0 && data.content && data.content.point) {
-                        return {
-                            ip: data.content.address || 'unknown',
-                            city: data.content.address_detail?.city || 'Unknown',
-                            country: 'China',
-                            lat: parseFloat(data.content.point.y),
-                            lng: parseFloat(data.content.point.x)
-                        };
-                    }
-                    return null;
-                }
-            },
             {
                 name: 'ipapi.co',
                 url: 'https://ipapi.co/json/',
-                parse: (data: any) => {
-                    if (data.latitude && data.longitude) {
+                weight: 1.0, // Higher weight for more reliable services
+                parse: async (data: any) => {
+                    if (data.latitude && data.longitude && data.ip) {
                         return {
                             ip: data.ip,
                             city: data.city,
+                            region: data.region,
                             country: data.country_name,
+                            countryCode: data.country_code,
                             lat: data.latitude,
-                            lng: data.longitude
+                            lng: data.longitude,
+                            isp: data.org,
+                            timezone: data.timezone
                         };
                     }
                     return null;
@@ -176,77 +185,100 @@ const getLocationFromIP = async (): Promise<Location | null> => {
             },
             {
                 name: 'ip.sb',
-                url: 'https://ip.sb/jsonip',
-                parse: async (data: any, originalUrl: string) => {
-                    if (data.ip) {
-                        // Get detailed location info
-                        try {
-                            const detailResponse = await fetch(`https://ip.sb/geoip/${data.ip}`, {
-                                headers: {
-                                    'Accept': 'application/json',
-                                    'User-Agent': 'ActivityPass/1.0'
-                                }
-                            });
-                            if (detailResponse.ok) {
-                                const detailData = await detailResponse.json();
-                                return {
-                                    ip: data.ip,
-                                    city: detailData.city,
-                                    country: detailData.country,
-                                    lat: detailData.latitude,
-                                    lng: detailData.longitude
-                                };
-                            }
-                        } catch (e) {
-                            // Return basic info
-                            return {
-                                ip: data.ip,
-                                city: 'Unknown',
-                                country: 'Unknown',
-                                lat: 39.9042, // Beijing fallback
-                                lng: 116.4074
-                            };
-                        }
+                url: 'https://api.ip.sb/geoip',
+                weight: 0.9,
+                parse: async (data: any) => {
+                    if (data.ip && data.latitude && data.longitude) {
+                        return {
+                            ip: data.ip,
+                            city: data.city,
+                            region: data.region,
+                            country: data.country,
+                            countryCode: data.country_code,
+                            lat: data.latitude,
+                            lng: data.longitude,
+                            isp: data.isp,
+                            timezone: data.timezone
+                        };
+                    }
+                    return null;
+                }
+            },
+            {
+                name: 'ipinfo.io',
+                url: 'https://ipinfo.io/json',
+                weight: 0.8,
+                parse: async (data: any) => {
+                    if (data.ip && data.loc) {
+                        const [lat, lng] = data.loc.split(',').map(Number);
+                        return {
+                            ip: data.ip,
+                            city: data.city,
+                            region: data.region,
+                            country: data.country,
+                            countryCode: data.country,
+                            lat: lat,
+                            lng: lng,
+                            isp: data.org,
+                            timezone: data.timezone
+                        };
+                    }
+                    return null;
+                }
+            },
+            {
+                name: 'ip-api.com',
+                url: 'https://ip-api.com/json/',
+                weight: 0.7,
+                parse: async (data: any) => {
+                    if (data.status === 'success' && data.lat && data.lon) {
+                        return {
+                            ip: data.query,
+                            city: data.city,
+                            region: data.regionName,
+                            country: data.country,
+                            countryCode: data.countryCode,
+                            lat: data.lat,
+                            lng: data.lon,
+                            isp: data.isp,
+                            timezone: data.timezone
+                        };
                     }
                     return null;
                 }
             }
         ];
 
+        const results: Array<{data: any, weight: number, service: string}> = [];
+
+        // Try all services and collect results
         for (const service of services) {
             try {
-                // Skip Baidu if no API key
-                if (service.name === 'Baidu IP Location' && service.url.includes('your_baidu_key')) {
-                    continue;
-                }
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
                 const response = await fetch(service.url, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
                         'User-Agent': 'ActivityPass/1.0'
-                    }
+                    },
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
 
                 if (!response.ok) continue;
 
                 const data = await response.json();
-                let locationData;
+                const parsedData = await service.parse(data);
 
-                if (service.name === 'ip.sb') {
-                    locationData = await service.parse(data, service.url);
-                } else {
-                    locationData = service.parse(data);
-                }
-
-                if (locationData && locationData.lat && locationData.lng) {
-                    return {
-                        lat: locationData.lat,
-                        lng: locationData.lng,
-                        address: locationData.city && locationData.country ?
-                            `${locationData.city}, ${locationData.country}` :
-                            (locationData.city || locationData.country || undefined)
-                    };
+                if (parsedData) {
+                    results.push({
+                        data: parsedData,
+                        weight: service.weight,
+                        service: service.name
+                    });
                 }
             } catch (serviceError) {
                 console.warn(`${service.name} failed:`, serviceError);
@@ -254,34 +286,115 @@ const getLocationFromIP = async (): Promise<Location | null> => {
             }
         }
 
-        // If all services fail, return Beijing as default for China
-        console.warn('All IP geolocation services failed, using Beijing default');
-        return {
-            lat: 39.9042,
-            lng: 116.4074,
-            address: '北京市, China' // Use Chinese name
+        if (results.length === 0) {
+            return { location: null, isLikelyVPN: false, confidence: 0 };
+        }
+
+        // Use weighted average for more accurate location
+        let totalWeight = 0;
+        let weightedLat = 0;
+        let weightedLng = 0;
+        const countries: string[] = [];
+        const countryCodes: string[] = [];
+        const isps: string[] = [];
+
+        results.forEach(result => {
+            totalWeight += result.weight;
+            weightedLat += result.data.lat * result.weight;
+            weightedLng += result.data.lng * result.weight;
+            if (result.data.country) countries.push(result.data.country);
+            if (result.data.countryCode) countryCodes.push(result.data.countryCode);
+            if (result.data.isp) isps.push(result.data.isp);
+        });
+
+        const avgLat = weightedLat / totalWeight;
+        const avgLng = weightedLng / totalWeight;
+
+        // Determine most common country
+        const countryCount = countries.reduce((acc, country) => {
+            acc[country] = (acc[country] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        const mostCommonCountry = Object.keys(countryCount).reduce((a, b) =>
+            countryCount[a] > countryCount[b] ? a : b, '');
+
+        // VPN detection logic
+        let isLikelyVPN = false;
+        let confidence = 0.5; // Base confidence
+
+        // Check for VPN indicators
+        const vpnIndicators = [
+            // Multiple different countries reported
+            new Set(countries).size > 1,
+            // ISP looks like VPN provider
+            isps.some(isp => isp && (
+                isp.toLowerCase().includes('vpn') ||
+                isp.toLowerCase().includes('proxy') ||
+                isp.toLowerCase().includes('cloudflare') ||
+                isp.toLowerCase().includes('akamai') ||
+                isp.toLowerCase().includes('fastly')
+            )),
+            // Location is in a different country than expected (this will be checked against GPS later)
+            results.length > 1 && new Set(countryCodes).size > 1
+        ];
+
+        const vpnScore = vpnIndicators.filter(Boolean).length / vpnIndicators.length;
+        if (vpnScore > 0.3) {
+            isLikelyVPN = true;
+            confidence = Math.min(0.9, 0.5 + vpnScore);
+        }
+
+        // Create location object
+        const location: Location = {
+            lat: avgLat,
+            lng: avgLng,
+            address: mostCommonCountry ? `${mostCommonCountry}` : undefined
         };
+
+        return { location, isLikelyVPN, confidence };
+
     } catch (error) {
         console.warn('IP geolocation failed:', error);
-        // Return Beijing as final fallback
-        return {
-            lat: 39.9042,
-            lng: 116.4074,
-            address: '北京市, China'
-        };
+        return { location: null, isLikelyVPN: false, confidence: 0 };
     }
 };
 
-// Helper function to calculate distance between two coordinates (Haversine formula)
-const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-    const R = 6371; // Earth's radius in kilometers
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+// Helper function to get location from AMap IP geolocation (official service)
+const getLocationFromAMapIP = async (): Promise<Location | null> => {
+    try {
+        // Use AMap's official IP geolocation service
+        if ((window as any).AMap && (window as any).AMap.Geolocation) {
+            return new Promise((resolve) => {
+                const geolocation = new (window as any).AMap.Geolocation({
+                    enableHighAccuracy: false, // IP-based, so disable high accuracy
+                    timeout: 10000,
+                    maximumAge: 300000,
+                    convert: true,
+                    GeoLocationFirst: false, // IP first
+                    noIpLocate: false,
+                    noGeoLocation: true // Disable GPS, use only IP
+                });
+
+                geolocation.getCurrentPosition((status: string, result: any) => {
+                    if (status === 'complete' && result && result.position) {
+                        console.log('AMap IP geolocation successful:', result.position);
+                        resolve({
+                            lat: result.position.lat,
+                            lng: result.position.lng,
+                            address: result.formattedAddress || undefined
+                        });
+                    } else {
+                        console.warn('AMap IP geolocation failed');
+                        resolve(null);
+                    }
+                });
+            });
+        }
+        return null;
+    } catch (error) {
+        console.warn('AMap IP geolocation error:', error);
+        return null;
+    }
 };
 
 const LocationPicker: React.FC<LocationPickerProps> = ({
@@ -295,6 +408,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
     const [userLocation, setUserLocation] = useState<Location | null>(null);
     const [isLoadingAddress, setIsLoadingAddress] = useState(false);
     const [isUsingIPLocation, setIsUsingIPLocation] = useState(false);
+    const [vpnDetected, setVpnDetected] = useState(false);
     const [isInitializingLocation, setIsInitializingLocation] = useState(false);
     const { t, i18n } = useTranslation();
     const mapRef = useRef<L.Map | null>(null);
@@ -303,7 +417,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         setTempLocation(value);
     }, [value]);
 
-    // Initialize location detection - prioritize AMap GPS like the official website
+    // Initialize location detection - prioritize browser GPS like the official AMap website
     useEffect(() => {
         const initializeLocation = async () => {
             if (userLocation || isInitializingLocation) return;
@@ -311,66 +425,121 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
             setIsInitializingLocation(true);
 
             try {
-                // Load AMap script first
-                try {
-                    await loadAMapScript();
-                    console.log('AMap script loaded successfully');
-                } catch (scriptError) {
-                    console.warn('Failed to load AMap script, falling back to browser geolocation:', scriptError);
+                // Check geolocation permission first
+                const permissionStatus = await checkGeolocationPermission();
+                console.log('Geolocation permission status:', permissionStatus);
+
+                if (permissionStatus === 'denied') {
+                    console.log('Geolocation permission denied, falling back to IP location');
+                    const ipResult = await getLocationFromIP();
+                    if (ipResult.location) {
+                        setUserLocation(ipResult.location);
+                        setIsUsingIPLocation(true);
+                        setVpnDetected(ipResult.isLikelyVPN);
+                    } else {
+                        setUserLocation({ lat: 39.9042, lng: 116.4074 });
+                        setIsUsingIPLocation(true);
+                        setVpnDetected(false);
+                    }
+                    setIsInitializingLocation(false);
+                    return;
                 }
 
-                // Try AMap/browser GPS location first (like AMap website does)
+                // Load AMap script in background (don't wait for it)
+                loadAMapScript().then(() => {
+                    console.log('AMap script loaded successfully');
+                }).catch(scriptError => {
+                    console.warn('Failed to load AMap script:', scriptError);
+                });
+
+                // Try browser GPS location first (like AMap website does)
                 try {
-                    console.log('Trying GPS location...');
+                    console.log('Trying browser GPS location...');
                     const position = await requestLocationAMap();
                     const gpsLocation = {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude
                     };
 
-                    console.log('GPS location obtained:', gpsLocation);
+                    // Validate GPS coordinates are reasonable (not default/placeholder values)
+                    if (Math.abs(gpsLocation.lat) < 0.1 && Math.abs(gpsLocation.lng) < 0.1) {
+                        throw new Error('Invalid GPS coordinates received');
+                    }
+
+                    // Additional validation - check if coordinates are within reasonable bounds
+                    if (gpsLocation.lat < -90 || gpsLocation.lat > 90 || gpsLocation.lng < -180 || gpsLocation.lng > 180) {
+                        throw new Error('GPS coordinates out of valid range');
+                    }
+
+                    console.log('GPS location obtained:', gpsLocation, `accuracy: ${position.coords.accuracy}m`);
 
                     // Check for VPN by comparing with IP location
-                    const ipLocation = await getLocationFromIP();
-                    if (ipLocation) {
-                        const distance = calculateDistance(gpsLocation.lat, gpsLocation.lng, ipLocation.lat, ipLocation.lng);
+                    const ipResult = await getLocationFromIP();
+                    if (ipResult.location) {
+                        const distance = calculateDistance(gpsLocation.lat, gpsLocation.lng, ipResult.location.lat, ipResult.location.lng);
 
-                        // If distance is very large (>300km), likely VPN
-                        if (distance > 300) {
-                            console.log(`VPN detected: GPS-IP distance = ${distance.toFixed(1)}km, using IP location`);
-                            setUserLocation(ipLocation);
+                        // Enhanced VPN detection logic
+                        const isVPN = ipResult.isLikelyVPN ||
+                                     distance > 500 || // Very large distance
+                                     (distance > 200 && ipResult.confidence > 0.7) || // Large distance with high VPN confidence
+                                     (distance > 100 && position.coords.accuracy > 1000); // Poor GPS accuracy + significant distance
+
+                        if (isVPN) {
+                            console.log(`VPN detected: GPS-IP distance = ${distance.toFixed(1)}km, VPN confidence = ${(ipResult.confidence * 100).toFixed(1)}%, GPS accuracy = ${position.coords.accuracy}m, using IP location`);
+                            setUserLocation(ipResult.location);
                             setIsUsingIPLocation(true);
+                            setVpnDetected(true);
                         } else {
-                            console.log(`Using GPS location: distance from IP = ${distance.toFixed(1)}km`);
+                            console.log(`Using GPS location: distance from IP = ${distance.toFixed(1)}km, VPN confidence = ${(ipResult.confidence * 100).toFixed(1)}%, GPS accuracy = ${position.coords.accuracy}m`);
                             setUserLocation(gpsLocation);
                             setIsUsingIPLocation(false);
+                            setVpnDetected(false);
                         }
                     } else {
                         // No IP location available, use GPS
+                        console.log('No IP location available, using GPS location with accuracy:', position.coords.accuracy, 'm');
                         setUserLocation(gpsLocation);
                         setIsUsingIPLocation(false);
+                        setVpnDetected(false);
                     }
                 } catch (gpsError) {
                     console.warn('GPS location failed, falling back to IP:', gpsError);
 
-                    // GPS failed, fall back to IP location
-                    const ipLocation = await getLocationFromIP();
+                    // GPS failed, try AMap IP geolocation first, then third-party services
+                    let ipLocation = await getLocationFromAMapIP();
+                    if (!ipLocation) {
+                        console.log('AMap IP geolocation failed, trying third-party services');
+                        const ipResult = await getLocationFromIP();
+                        ipLocation = ipResult.location;
+                        setVpnDetected(ipResult.isLikelyVPN);
+                    } else {
+                        setVpnDetected(false); // AMap IP is usually accurate
+                    }
+
                     if (ipLocation) {
+                        console.log('Using IP location as GPS fallback');
                         setUserLocation(ipLocation);
                         setIsUsingIPLocation(true);
                     } else {
                         // Final fallback to Beijing
+                        console.log('All location methods failed, using Beijing fallback');
                         setUserLocation({ lat: 39.9042, lng: 116.4074 });
                         setIsUsingIPLocation(true);
+                        setVpnDetected(false);
                     }
                 }
             }
             catch (error) {
                 console.warn('Location initialization failed:', error);
-                // Final fallback
-                const ipLocation = await getLocationFromIP();
-                setUserLocation(ipLocation || { lat: 39.9042, lng: 116.4074 });
-                setIsUsingIPLocation(!!ipLocation);
+                // Final fallback - try AMap IP, then third-party IP
+                let fallbackLocation = await getLocationFromAMapIP();
+                if (!fallbackLocation) {
+                    const ipResult = await getLocationFromIP();
+                    fallbackLocation = ipResult.location;
+                }
+                setUserLocation(fallbackLocation || { lat: 39.9042, lng: 116.4074 });
+                setIsUsingIPLocation(!!fallbackLocation);
+                setVpnDetected(false);
             } finally {
                 setIsInitializingLocation(false);
             }
@@ -395,8 +564,14 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                 return new Promise((resolve) => {
                     geocoder.getAddress([lng, lat], (status: string, result: any) => {
                         if (status === 'complete' && result && result.regeocode && result.regeocode.formattedAddress) {
-                            // AMap returns proper Chinese addresses
-                            resolve(result.regeocode.formattedAddress);
+                            // AMap returns proper Chinese addresses - remove commas for Chinese addresses
+                            let address = result.regeocode.formattedAddress;
+                            // Check if this looks like a Chinese address (contains Chinese characters)
+                            if (/[\u4e00-\u9fff]/.test(address)) {
+                                // Remove commas and extra spaces for Chinese addresses
+                                address = address.replace(/,/g, '').replace(/\s+/g, '');
+                            }
+                            resolve(address);
                         } else {
                             resolve(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
                         }
@@ -410,7 +585,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         // Second try: AMap REST API (requires API key, works in China, returns Chinese addresses)
         try {
             // Get AMap API key from environment variables
-            const amapKey = process.env.REACT_APP_AMAP_KEY || process.env.VITE_AMAP_KEY;
+            const amapKey = import.meta.env.REACT_APP_AMAP_KEY || import.meta.env.VITE_AMAP_KEY;
 
             if (amapKey && amapKey !== 'your_amap_api_key_here') {
                 const response = await fetch(
@@ -425,7 +600,13 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                 if (response.ok) {
                     const data = await response.json();
                     if (data.status === '1' && data.regeocode && data.regeocode.formatted_address) {
-                        return data.regeocode.formatted_address;
+                        let address = data.regeocode.formatted_address;
+                        // Check if this looks like a Chinese address (contains Chinese characters)
+                        if (/[\u4e00-\u9fff]/.test(address)) {
+                            // Remove commas and extra spaces for Chinese addresses
+                            address = address.replace(/,/g, '').replace(/\s+/g, '');
+                        }
+                        return address;
                     }
                 }
             }
@@ -436,7 +617,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         // Third try: Baidu Maps API (works in China, returns Chinese addresses)
         try {
             // Get Baidu API key from environment variables
-            const baiduKey = process.env.REACT_APP_BAIDU_MAP_KEY || process.env.VITE_BAIDU_MAP_KEY;
+            const baiduKey = import.meta.env.REACT_APP_BAIDU_MAP_KEY || import.meta.env.VITE_BAIDU_MAP_KEY;
 
             if (baiduKey && baiduKey !== 'your_baidu_api_key_here') {
                 const response = await fetch(
@@ -451,7 +632,13 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                 if (response.ok) {
                     const data = await response.json();
                     if (data.status === 0 && data.result && data.result.formatted_address) {
-                        return data.result.formatted_address;
+                        let address = data.result.formatted_address;
+                        // Check if this looks like a Chinese address (contains Chinese characters)
+                        if (/[\u4e00-\u9fff]/.test(address)) {
+                            // Remove commas and extra spaces for Chinese addresses
+                            address = address.replace(/,/g, '').replace(/\s+/g, '');
+                        }
+                        return address;
                     }
                 }
             }
@@ -721,7 +908,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                                 {t('location.clickToSelect', { defaultValue: 'Click on the map to select the activity location' })}
                             </p>
 
-                            {isUsingIPLocation && (
+                            {vpnDetected && (
                                 <div className="p-3 mb-4 border rounded-lg bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
                                     <div className="flex items-start">
                                         <div>
