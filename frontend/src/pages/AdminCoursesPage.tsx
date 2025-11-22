@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { AdminCourse } from '../types/admin';
+import CustomSelect from '../components/CustomSelect';
+import CustomDatePicker from '../components/CustomDatePicker';
 
 const defaultCourseForm = () => ({
     code: '',
@@ -199,7 +201,6 @@ const AdminCoursesPage: React.FC = () => {
                 <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h1 className="text-2xl font-semibold">{t('admin.manageCourses', { defaultValue: 'Manage courses' })}</h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('admin.manageStudentsHint')}</p>
                     </div>
                     <div className="flex gap-2">
                         <button type="button" onClick={openCreateModal} className="px-4 py-2 text-sm text-white bg-gray-900 rounded-md">
@@ -222,98 +223,104 @@ const AdminCoursesPage: React.FC = () => {
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder={t('admin.searchStudents', { defaultValue: 'Search…' }) || ''}
-                            className="px-4 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-800"
+                            className="px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
                         />
-                        <select value={termFilter} onChange={e => setTermFilter(e.target.value)} className="px-4 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-800">
-                            <option value="">{t('admin.course.term')}</option>
-                            {termOptions.map(term => (
-                                <option key={term} value={term}>{term}</option>
-                            ))}
-                        </select>
-                        <select value={dayFilter} onChange={e => setDayFilter(e.target.value)} className="px-4 py-2 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-800">
-                            <option value="">{t('admin.course.day')}</option>
-                            {weekdayKeys.map(key => (
-                                <option key={key} value={key}>{formatDay(key)}</option>
-                            ))}
-                        </select>
+                        <CustomSelect
+                            value={termFilter}
+                            onChange={setTermFilter}
+                            options={[
+                                { value: '', label: t('admin.course.term') },
+                                ...termOptions.map(term => ({ value: term, label: term }))
+                            ]}
+                        />
+                        <CustomSelect
+                            value={dayFilter}
+                            onChange={setDayFilter}
+                            options={[
+                                { value: '', label: t('admin.course.day') },
+                                ...weekdayKeys.map(key => ({ value: String(key), label: formatDay(key) }))
+                            ]}
+                        />
                     </div>
 
-                    <div className="mt-6 overflow-x-auto">
-                        <table className="min-w-[720px] text-left text-sm">
-                            <thead>
-                                <tr className="text-gray-500 dark:text-gray-400">
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.term')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.title')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.teacher')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.day')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.time')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.periods')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.weeks')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.location')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap" />
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {!filteredCourses.length && !loading && (
-                                    <tr>
-                                        <td colSpan={9} className="py-6 text-center text-gray-500">{t('admin.noCourses')}</td>
+                    <div className="mt-6">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead>
+                                    <tr className="text-gray-500 dark:text-gray-400">
+                                        <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.term')}</th>
+                                        <th className="px-4 py-2 whitespace-nowrap min-w-[200px]">{t('admin.course.title')}</th>
+                                        <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.teacher')}</th>
+                                        <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.day')}</th>
+                                        <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.time')}</th>
+                                        <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.periods')}</th>
+                                        <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.weeks')}</th>
+                                        <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.location')}</th>
+                                        <th className="px-4 py-2 whitespace-nowrap" />
                                     </tr>
-                                )}
-                                {loading && (
-                                    <tr>
-                                        <td colSpan={9} className="py-6 text-center text-gray-500">{t('admin.table.loading')}</td>
-                                    </tr>
-                                )}
-                                {filteredCourses.map(course => (
-                                    <tr key={course.id} className="border-t border-gray-100 dark:border-gray-800">
-                                        <td className="px-4 py-2 whitespace-nowrap">
-                                            {course.term === 'first' ? t('admin.courseForm.term.first') : 
-                                             course.term === 'second' ? t('admin.courseForm.term.second') : 
-                                             course.term || '—'}
-                                        </td>
-                                        <td className="px-4 py-2">
-                                            <p className="font-medium text-gray-900 dark:text-gray-100">{course.title}</p>
-                                            <p className="text-xs text-gray-500">{course.code || '—'} · {
-                                                course.course_type === 'Theory' ? t('admin.courseForm.type.theory') :
-                                                course.course_type === 'Technical' ? t('admin.courseForm.type.technical') :
-                                                course.course_type === 'Practice' ? t('admin.courseForm.type.practice') :
-                                                course.course_type === 'Experiment' ? t('admin.courseForm.type.experiment') :
-                                                course.course_type || '—'
-                                            }</p>
-                                        </td>
-                                        <td className="px-4 py-2 whitespace-nowrap">{course.teacher || '—'}</td>
-                                        <td className="px-4 py-2 whitespace-nowrap">{formatDay(course.day_of_week)}</td>
-                                        <td className="px-4 py-2 whitespace-nowrap">{formatTime(course)}</td>
-                                        <td className="px-4 py-2 whitespace-nowrap">{formatPeriods(course)}</td>
-                                        <td className="px-4 py-2 whitespace-nowrap">{formatWeeks(course)}</td>
-                                        <td className="px-4 py-2 whitespace-nowrap">{course.location || '—'}</td>
-                                        <td className="px-4 py-2 text-right whitespace-nowrap">
-                                            <div className="flex justify-end gap-3">
-                                                <button type="button" onClick={() => openEditModal(course)} className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                    {t('common.edit')}
-                                                </button>
-                                                <button type="button" onClick={() => deleteCourse(course.id)} className="text-sm text-red-600" disabled={deletingId === course.id}>
-                                                    {t('admin.courseDelete')}
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {!filteredCourses.length && !loading && (
+                                        <tr>
+                                            <td colSpan={9} className="py-6 text-center text-gray-500">{t('admin.noCourses')}</td>
+                                        </tr>
+                                    )}
+                                    {loading && (
+                                        <tr>
+                                            <td colSpan={9} className="py-6 text-center text-gray-500">{t('admin.table.loading')}</td>
+                                        </tr>
+                                    )}
+                                    {filteredCourses.map(course => (
+                                        <tr key={course.id} className="border-t border-gray-100 dark:border-gray-800">
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                {course.term === 'first' ? t('admin.courseForm.term.first') : 
+                                                 course.term === 'second' ? t('admin.courseForm.term.second') : 
+                                                 course.term || '—'}
+                                            </td>
+                                            <td className="px-4 py-2 min-w-[200px]">
+                                                <p className="font-medium text-gray-900 dark:text-gray-100">{course.title}</p>
+                                                <p className="text-xs text-gray-500">{course.code || '—'} · {
+                                                    course.course_type === 'Theory' ? t('admin.courseForm.type.theory') :
+                                                    course.course_type === 'Technical' ? t('admin.courseForm.type.technical') :
+                                                    course.course_type === 'Practice' ? t('admin.courseForm.type.practice') :
+                                                    course.course_type === 'Experiment' ? t('admin.courseForm.type.experiment') :
+                                                    course.course_type || '—'
+                                                }</p>
+                                            </td>
+                                            <td className="px-4 py-2 whitespace-nowrap">{course.teacher || '—'}</td>
+                                            <td className="px-4 py-2 whitespace-nowrap">{formatDay(course.day_of_week)}</td>
+                                            <td className="px-4 py-2 whitespace-nowrap">{formatTime(course)}</td>
+                                            <td className="px-4 py-2 whitespace-nowrap">{formatPeriods(course)}</td>
+                                            <td className="px-4 py-2 whitespace-nowrap">{formatWeeks(course)}</td>
+                                            <td className="px-4 py-2 whitespace-nowrap">{course.location || '—'}</td>
+                                            <td className="px-4 py-2 text-right whitespace-nowrap">
+                                                <div className="flex justify-end gap-3">
+                                                    <button type="button" onClick={() => openEditModal(course)} className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                        {t('common.edit')}
+                                                    </button>
+                                                    <button type="button" onClick={() => deleteCourse(course.id)} className="text-sm text-red-600" disabled={deletingId === course.id}>
+                                                        {t('admin.courseDelete')}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
             </div>
 
             {modalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="w-full max-w-3xl max-h-[90vh] overflow-hidden bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700">
-                        <div className="flex items-center justify-between p-6 pb-4">
+                <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-8 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-2xl bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700 mt-8 mb-8">
+                        <div className="flex items-center justify-between p-4 pb-3">
                             <div>
                                 <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
                                     {editingCourse ? t('admin.editCourse') : t('admin.addCourse')}
                                 </p>
-                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{form.title || t('admin.course.title')}</h2>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{form.title || t('admin.course.title')}</h2>
                             </div>
                             <button type="button" onClick={closeModal} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
                                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -321,8 +328,8 @@ const AdminCoursesPage: React.FC = () => {
                                 </svg>
                             </button>
                         </div>
-                        <div className="px-6 pb-6">
-                            <form onSubmit={submitCourse} className="space-y-6" autoComplete="off">
+                        <div className="px-4 pb-4">
+                            <form onSubmit={submitCourse} className="space-y-4" autoComplete="off">
                                 {/* Basic Info Row */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
@@ -332,7 +339,7 @@ const AdminCoursesPage: React.FC = () => {
                                         <input
                                             value={form.code}
                                             onChange={e => setForm(prev => ({ ...prev, code: e.target.value }))}
-                                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors"
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
                                             placeholder={t('admin.courseForm.code')}
                                         />
                                     </div>
@@ -340,24 +347,17 @@ const AdminCoursesPage: React.FC = () => {
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                             {t('admin.courseForm.type')}
                                         </label>
-                                        <div className="relative">
-                                            <select
-                                                value={form.course_type}
-                                                onChange={e => setForm(prev => ({ ...prev, course_type: e.target.value }))}
-                                                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 appearance-none transition-colors"
-                                            >
-                                                <option value="">{t('admin.courseForm.type')}</option>
-                                                <option value="Theory">{t('admin.courseForm.type.theory')}</option>
-                                                <option value="Technical">{t('admin.courseForm.type.technical')}</option>
-                                                <option value="Practice">{t('admin.courseForm.type.practice')}</option>
-                                                <option value="Experiment">{t('admin.courseForm.type.experiment')}</option>
-                                            </select>
-                                            <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </div>
-                                        </div>
+                                        <CustomSelect
+                                            value={form.course_type}
+                                            onChange={(value) => setForm(prev => ({ ...prev, course_type: value }))}
+                                            options={[
+                                                { value: '', label: t('admin.courseForm.type') },
+                                                { value: 'Theory', label: t('admin.courseForm.type.theory') },
+                                                { value: 'Technical', label: t('admin.courseForm.type.technical') },
+                                                { value: 'Practice', label: t('admin.courseForm.type.practice') },
+                                                { value: 'Experiment', label: t('admin.courseForm.type.experiment') },
+                                            ]}
+                                        />
                                     </div>
                                 </div>
 
@@ -370,7 +370,7 @@ const AdminCoursesPage: React.FC = () => {
                                         value={form.title}
                                         onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))}
                                         required
-                                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors"
+                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
                                         placeholder={t('admin.courseForm.title')}
                                     />
                                 </div>
@@ -384,7 +384,7 @@ const AdminCoursesPage: React.FC = () => {
                                         <input
                                             value={form.teacher}
                                             onChange={e => setForm(prev => ({ ...prev, teacher: e.target.value }))}
-                                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors"
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
                                             placeholder={t('admin.courseForm.teacher')}
                                         />
                                     </div>
@@ -395,7 +395,7 @@ const AdminCoursesPage: React.FC = () => {
                                         <input
                                             value={form.location}
                                             onChange={e => setForm(prev => ({ ...prev, location: e.target.value }))}
-                                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors"
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
                                             placeholder={t('admin.courseForm.location')}
                                         />
                                     </div>
@@ -407,55 +407,38 @@ const AdminCoursesPage: React.FC = () => {
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                             {t('admin.courseForm.term')}
                                         </label>
-                                        <div className="relative">
-                                            <select
-                                                value={form.term}
-                                                onChange={e => setForm(prev => ({ ...prev, term: e.target.value }))}
-                                                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 appearance-none transition-colors"
-                                            >
-                                                <option value="">{t('admin.courseForm.term')}</option>
-                                                <option value="first">{t('admin.courseForm.term.first')}</option>
-                                                <option value="second">{t('admin.courseForm.term.second')}</option>
-                                            </select>
-                                            <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </div>
-                                        </div>
+                                        <CustomSelect
+                                            value={form.term}
+                                            onChange={(value) => setForm(prev => ({ ...prev, term: value }))}
+                                            options={[
+                                                { value: '', label: t('admin.courseForm.term') },
+                                                { value: 'first', label: t('admin.courseForm.term.first') },
+                                                { value: 'second', label: t('admin.courseForm.term.second') },
+                                            ]}
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                             {t('admin.courseForm.firstWeek')}
                                         </label>
-                                        <input
-                                            type="date"
+                                        <CustomDatePicker
                                             value={form.first_week_monday}
-                                            onChange={e => setForm(prev => ({ ...prev, first_week_monday: e.target.value }))}
-                                            required
-                                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors"
+                                            onChange={(value) => setForm(prev => ({ ...prev, first_week_monday: value }))}
+                                            placeholder={t('admin.courseForm.firstWeek')}
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                             {t('admin.courseForm.day')}
                                         </label>
-                                        <div className="relative">
-                                            <select
-                                                value={form.day_of_week}
-                                                onChange={e => setForm(prev => ({ ...prev, day_of_week: e.target.value }))}
-                                                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 appearance-none transition-colors"
-                                            >
-                                                {weekdayKeys.map(key => (
-                                                    <option key={key} value={key}>{formatDay(key)}</option>
-                                                ))}
-                                            </select>
-                                            <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </div>
-                                        </div>
+                                        <CustomSelect
+                                            value={form.day_of_week}
+                                            onChange={(value) => setForm(prev => ({ ...prev, day_of_week: value }))}
+                                            options={weekdayKeys.map(key => ({
+                                                value: String(key),
+                                                label: formatDay(key)
+                                            }))}
+                                        />
                                     </div>
                                 </div>
 
@@ -465,7 +448,7 @@ const AdminCoursesPage: React.FC = () => {
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                             {t('admin.courseForm.periods')}
                                         </label>
-                                        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-4 gap-2 p-4 bg-gray-50 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-600">
+                                        <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-6 gap-1.5 p-3 bg-gray-50 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-600">
                                             {Array.from({ length: 13 }, (_, i) => i + 1).map(session => (
                                                 <button
                                                     key={session}
@@ -478,9 +461,9 @@ const AdminCoursesPage: React.FC = () => {
                                                                 : [...prev.periods, session].sort((a, b) => a - b)
                                                         }));
                                                     }}
-                                                    className={`flex items-center justify-center w-full h-10 text-sm font-medium rounded-lg transition-all duration-200 ${
+                                                    className={`flex items-center justify-center w-full h-8 text-xs font-medium rounded-md transition-all duration-200 ${
                                                         form.periods.includes(session)
-                                                            ? 'bg-blue-600 text-white shadow-md transform scale-105'
+                                                            ? 'bg-blue-600 text-white shadow-sm'
                                                             : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-600'
                                                     }`}
                                                 >
@@ -493,7 +476,7 @@ const AdminCoursesPage: React.FC = () => {
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                             {t('admin.courseForm.weeks')}
                                         </label>
-                                        <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-5 gap-2 p-4 bg-gray-50 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-600 max-h-48 overflow-y-auto">
+                                        <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-6 gap-1.5 p-3 bg-gray-50 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-600">
                                             {Array.from({ length: 17 }, (_, i) => i + 1).map(week => (
                                                 <button
                                                     key={week}
@@ -506,9 +489,9 @@ const AdminCoursesPage: React.FC = () => {
                                                                 : [...prev.week_pattern, week].sort((a, b) => a - b)
                                                         }));
                                                     }}
-                                                    className={`flex items-center justify-center w-full h-10 text-sm font-medium rounded-lg transition-all duration-200 ${
+                                                    className={`flex items-center justify-center w-full h-8 text-xs font-medium rounded-md transition-all duration-200 ${
                                                         form.week_pattern.includes(week)
-                                                            ? 'bg-blue-600 text-white shadow-md transform scale-105'
+                                                            ? 'bg-blue-600 text-white shadow-sm'
                                                             : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-600'
                                                     }`}
                                                 >
@@ -520,18 +503,18 @@ const AdminCoursesPage: React.FC = () => {
                                 </div>
 
                                 {/* Form Actions */}
-                                <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-3 space-y-reverse sm:space-y-0 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-3 border-t border-gray-200 dark:border-gray-700">
                                     <button
                                         type="button"
                                         onClick={closeModal}
-                                        className="w-full sm:w-auto px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
                                     >
                                         {t('common.cancel')}
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={saving}
-                                        className="w-full sm:w-auto px-6 py-3 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
                                     >
                                         {saving ? t('profile.saving') : t('common.save')}
                                     </button>

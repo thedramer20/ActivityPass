@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { AdminUser, SecurityPreferences } from '../types/admin';
+import CustomSelect from '../components/CustomSelect';
 
 const defaultStudentForm = () => ({
     student_id: '',
-    username: '',
     full_name: '',
     email: '',
     phone: '',
@@ -139,7 +139,6 @@ const AdminStudentsPage: React.FC = () => {
         setEditingStudent(student);
         setEditForm({
             student_id: student.student_profile?.student_id || '',
-            username: student.username || '',
             full_name: student.first_name || '',
             email: student.email || '',
             phone: student.student_profile?.phone || '',
@@ -208,7 +207,6 @@ const AdminStudentsPage: React.FC = () => {
         setCreating(true);
         try {
             const payload: Record<string, unknown> = { ...form };
-            if (!form.username.trim()) delete payload.username;
             if (!form.full_name.trim()) delete payload.full_name;
             if (!form.email.trim()) delete payload.email;
             if (!form.phone.trim()) delete payload.phone;
@@ -305,11 +303,11 @@ const AdminStudentsPage: React.FC = () => {
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder={t('admin.searchStudents') || ''}
-                            className="flex-1 border border-gray-300 dark:border-gray-700 rounded-md px-4 py-2 bg-white dark:bg-gray-800"
+                            className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
                         />
                     </div>
                     <div className="mt-6 overflow-x-auto">
-                        <table className="min-w-[720px] text-left text-sm">
+                        <table className="w-full text-left text-sm">
                             <thead>
                                 <tr className="text-gray-500 dark:text-gray-400">
                                     <th className="px-4 py-2 whitespace-nowrap">{t('admin.table.studentId')}</th>
@@ -351,116 +349,427 @@ const AdminStudentsPage: React.FC = () => {
             </div>
 
             {modalOpen && (
-                <div className="fixed inset-0 z-30 flex items-center justify-center px-4 py-6 bg-black/50">
-                    <div className="w-full max-w-2xl p-6 bg-white rounded-2xl shadow-2xl dark:bg-gray-950 border border-gray-200 dark:border-gray-800">
-                        <div className="flex items-center justify-between mb-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-2xl bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700 mt-8 mb-8">
+                        <div className="flex items-center justify-between p-4 pb-3">
                             <div>
-                                <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">{t('admin.quickCreate', { defaultValue: 'Quick create' })}</p>
-                                <h2 className="text-xl font-semibold">{t('admin.addStudent', { defaultValue: 'Add student' })}</h2>
+                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                                    {t('admin.quickCreate', { defaultValue: 'Quick create' })}
+                                </p>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('admin.addStudent', { defaultValue: 'Add student' })}</h2>
                             </div>
-                            <button type="button" onClick={() => setModalOpen(false)} className="p-2 text-gray-500 rounded-md hover:text-gray-900 dark:text-gray-400 dark:hover:text-white" aria-label="Close">
-                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <button type="button" onClick={() => setModalOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
-                        <form onSubmit={submitNewStudent} className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto pr-1">
-                            {[
-                                { name: 'student_id', label: t('admin.table.studentId'), required: true },
-                                { name: 'username', label: t('admin.username', { defaultValue: 'Username (optional)' }) },
-                                { name: 'full_name', label: t('profile.name') },
-                                { name: 'email', label: t('admin.table.email') },
-                                ...studentProfileFieldDefs,
-                            ].map(field => (
-                                <label key={field.name} className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                    {field.label}
-                                    <input
-                                        value={(form as Record<string, string>)[field.name]}
-                                        onChange={e => setForm(prev => ({ ...prev, [field.name]: e.target.value }))}
-                                        required={('required' in field) ? Boolean((field as { required?: boolean }).required) : false}
-                                        className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900"
-                                    />
-                                </label>
-                            ))}
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('admin.student.year')}
-                                <input
-                                    type="number"
-                                    value={form.year}
-                                    onChange={e => setForm(prev => ({ ...prev, year: e.target.value }))}
-                                    className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900"
-                                />
-                            </label>
-                            <div className="sm:col-span-2 flex justify-end gap-3 pt-2">
-                                <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-sm">
-                                    {t('common.cancel', { defaultValue: 'Cancel' })}
-                                </button>
-                                <button type="submit" disabled={creating} className="px-4 py-2 rounded-md bg-gray-900 text-white text-sm disabled:opacity-60">
-                                    {creating ? t('profile.saving') : t('admin.createStudent', { defaultValue: 'Create student' })}
-                                </button>
-                            </div>
-                        </form>
+                        <div className="px-4 pb-4">
+                            <form onSubmit={submitNewStudent} className="space-y-4" autoComplete="off">
+                                {/* Basic Info Row */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.table.studentId')}
+                                        </label>
+                                        <input
+                                            value={form.student_id}
+                                            onChange={e => setForm(prev => ({ ...prev, student_id: e.target.value }))}
+                                            required
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.table.studentId')}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('profile.name')}
+                                        </label>
+                                        <input
+                                            value={form.full_name}
+                                            onChange={e => setForm(prev => ({ ...prev, full_name: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('profile.name')}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Contact Info */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.table.email')}
+                                        </label>
+                                        <input
+                                            value={form.email}
+                                            onChange={e => setForm(prev => ({ ...prev, email: e.target.value }))}
+                                            type="email"
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.table.email')}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.phone')}
+                                        </label>
+                                        <input
+                                            value={form.phone}
+                                            onChange={e => setForm(prev => ({ ...prev, phone: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.student.phone')}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Academic Info */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.major')}
+                                        </label>
+                                        <input
+                                            value={form.major}
+                                            onChange={e => setForm(prev => ({ ...prev, major: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.student.major')}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.college')}
+                                        </label>
+                                        <input
+                                            value={form.college}
+                                            onChange={e => setForm(prev => ({ ...prev, college: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.student.college')}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Class and Year */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.class_name')}
+                                        </label>
+                                        <input
+                                            value={form.class_name}
+                                            onChange={e => setForm(prev => ({ ...prev, class_name: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.student.class_name')}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.year')}
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                value={form.year}
+                                                onChange={e => setForm(prev => ({ ...prev, year: e.target.value }))}
+                                                type="number"
+                                                className="w-full px-3 py-2 pr-16 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                                placeholder={t('admin.student.year')}
+                                            />
+                                            <div className="absolute inset-y-0 right-0 flex flex-col">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setForm(prev => ({ ...prev, year: String((Number(prev.year) || new Date().getFullYear()) + 1) }))}
+                                                    className="flex-1 px-2 text-gray-400 dark:text-gray-500 border-l border-gray-300 dark:border-gray-600"
+                                                    aria-label="Increase year"
+                                                >
+                                                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M12 19V5M5 12l7-7 7 7" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setForm(prev => ({ ...prev, year: String(Math.max(1900, (Number(prev.year) || new Date().getFullYear()) - 1)) }))}
+                                                    className="flex-1 px-2 text-gray-400 dark:text-gray-500 border-l border-t border-gray-300 dark:border-gray-600"
+                                                    aria-label="Decrease year"
+                                                >
+                                                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M12 5v14M5 12l7 7 7-7" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Gender and Chinese Level */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.gender')}
+                                        </label>
+                                        <CustomSelect
+                                            value={form.gender}
+                                            onChange={(value) => setForm(prev => ({ ...prev, gender: value }))}
+                                            options={[
+                                                { value: '', label: t('admin.student.gender') },
+                                                { value: 'Male', label: t('admin.student.gender.male', { defaultValue: 'Male' }) },
+                                                { value: 'Female', label: t('admin.student.gender.female', { defaultValue: 'Female' }) },
+                                            ]}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.chinese_level')}
+                                        </label>
+                                        <CustomSelect
+                                            value={form.chinese_level}
+                                            onChange={(value) => setForm(prev => ({ ...prev, chinese_level: value }))}
+                                            options={[
+                                                { value: '', label: t('admin.student.chinese_level') },
+                                                { value: 'HSK1', label: 'HSK 1' },
+                                                { value: 'HSK2', label: 'HSK 2' },
+                                                { value: 'HSK3', label: 'HSK 3' },
+                                                { value: 'HSK4', label: 'HSK 4' },
+                                                { value: 'HSK5', label: 'HSK 5' },
+                                                { value: 'HSK6', label: 'HSK 6' },
+                                                { value: 'Native', label: t('admin.student.chinese_level.native', { defaultValue: 'Native' }) },
+                                            ]}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Form Actions */}
+                                <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                    <button
+                                        type="button"
+                                        onClick={() => setModalOpen(false)}
+                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                    >
+                                        {t('common.cancel')}
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={creating}
+                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                    >
+                                        {creating ? t('profile.saving') : t('admin.createStudent', { defaultValue: 'Create student' })}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}
 
             {editModalOpen && editingStudent && (
-                <div className="fixed inset-0 z-30 flex items-center justify-center px-4 py-6 bg-black/50">
-                    <div className="w-full max-w-3xl p-6 bg-white rounded-2xl shadow-2xl dark:bg-gray-950 border border-gray-200 dark:border-gray-800">
-                        <div className="flex items-center justify-between mb-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-3xl bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700 mt-8 mb-8">
+                        <div className="flex items-center justify-between p-4 pb-3">
                             <div>
-                                <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">{t('admin.editStudent')}</p>
-                                <h2 className="text-xl font-semibold">{editingStudent.username}</h2>
+                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                                    {t('admin.editStudent')}
+                                </p>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{editingStudent.first_name || editingStudent.username}</h2>
                             </div>
-                            <button type="button" onClick={closeEditModal} className="p-2 text-gray-500 rounded-md hover:text-gray-900 dark:text-gray-400 dark:hover:text-white" aria-label={t('common.close')}>
-                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <button type="button" onClick={closeEditModal} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
-                        <form onSubmit={submitEditStudent} className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto pr-1">
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('admin.table.studentId')}
-                                <input value={editForm.student_id} disabled className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-gray-100 dark:bg-gray-800" />
-                            </label>
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('admin.table.username')}
-                                <input value={editForm.username} disabled className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-gray-100 dark:bg-gray-800" />
-                            </label>
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('profile.name')}
-                                <input value={editForm.full_name} onChange={e => setEditForm(prev => ({ ...prev, full_name: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900" />
-                            </label>
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('admin.table.email')}
-                                <input value={editForm.email} onChange={e => setEditForm(prev => ({ ...prev, email: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900" />
-                            </label>
-                            {studentProfileFieldDefs.map(field => (
-                                <label key={field.name} className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                    {field.label}
-                                    <input
-                                        value={(editForm as Record<string, string>)[field.name]}
-                                        onChange={e => setEditForm(prev => ({ ...prev, [field.name]: e.target.value }))}
-                                        className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900"
-                                    />
-                                </label>
-                            ))}
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('admin.student.year')}
-                                <input type="number" value={editForm.year} onChange={e => setEditForm(prev => ({ ...prev, year: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900" />
-                            </label>
-                            <div className="md:col-span-2 flex flex-col gap-3 pt-2">
-                                <button type="button" onClick={() => resetPassword(editingStudent)} className="self-start px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-sm disabled:opacity-60" disabled={resettingUserId === editingStudent.id}>
-                                    {resettingUserId === editingStudent.id ? t('profile.saving') : t('admin.resetPassword')}
-                                </button>
-                                <div className="flex justify-end gap-3">
-                                    <button type="button" onClick={closeEditModal} className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-sm">{t('common.cancel')}</button>
-                                    <button type="submit" disabled={updating} className="px-4 py-2 rounded-md bg-gray-900 text-white text-sm disabled:opacity-60">
-                                        {updating ? t('profile.saving') : t('admin.saveChanges')}
-                                    </button>
+                        <div className="px-4 pb-4">
+                            <form onSubmit={submitEditStudent} className="space-y-4" autoComplete="off">
+                                {/* Basic Info Row */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.table.studentId')}
+                                        </label>
+                                        <input
+                                            value={editForm.student_id}
+                                            disabled
+                                            className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400 transition-colors text-sm"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('profile.name')}
+                                        </label>
+                                        <input
+                                            value={editForm.full_name}
+                                            onChange={e => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('profile.name')}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
+
+                                {/* Contact Info */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.table.email')}
+                                        </label>
+                                        <input
+                                            value={editForm.email}
+                                            onChange={e => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                                            type="email"
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.table.email')}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.phone')}
+                                        </label>
+                                        <input
+                                            value={editForm.phone}
+                                            onChange={e => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.student.phone')}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Academic Info */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.major')}
+                                        </label>
+                                        <input
+                                            value={editForm.major}
+                                            onChange={e => setEditForm(prev => ({ ...prev, major: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.student.major')}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.college')}
+                                        </label>
+                                        <input
+                                            value={editForm.college}
+                                            onChange={e => setEditForm(prev => ({ ...prev, college: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.student.college')}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Class and Year */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.class_name')}
+                                        </label>
+                                        <input
+                                            value={editForm.class_name}
+                                            onChange={e => setEditForm(prev => ({ ...prev, class_name: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.student.class_name')}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.year')}
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                value={editForm.year}
+                                                onChange={e => setEditForm(prev => ({ ...prev, year: e.target.value }))}
+                                                type="number"
+                                                className="w-full px-3 py-2 pr-16 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                                placeholder={t('admin.student.year')}
+                                            />
+                                            <div className="absolute inset-y-0 right-0 flex flex-col">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setEditForm(prev => ({ ...prev, year: String((Number(prev.year) || new Date().getFullYear()) + 1) }))}
+                                                    className="flex-1 px-2 text-gray-400 dark:text-gray-500 border-l border-gray-300 dark:border-gray-600"
+                                                    aria-label="Increase year"
+                                                >
+                                                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M12 19V5M5 12l7-7 7 7" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setEditForm(prev => ({ ...prev, year: String(Math.max(1900, (Number(prev.year) || new Date().getFullYear()) - 1)) }))}
+                                                    className="flex-1 px-2 text-gray-400 dark:text-gray-500 border-l border-t border-gray-300 dark:border-gray-600"
+                                                    aria-label="Decrease year"
+                                                >
+                                                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M12 5v14M5 12l7 7 7-7" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Gender and Chinese Level */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.gender')}
+                                        </label>
+                                        <CustomSelect
+                                            value={editForm.gender}
+                                            onChange={(value) => setEditForm(prev => ({ ...prev, gender: value }))}
+                                            options={[
+                                                { value: '', label: t('admin.student.gender') },
+                                                { value: 'Male', label: t('admin.student.gender.male', { defaultValue: 'Male' }) },
+                                                { value: 'Female', label: t('admin.student.gender.female', { defaultValue: 'Female' }) },
+                                            ]}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.chinese_level')}
+                                        </label>
+                                        <CustomSelect
+                                            value={editForm.chinese_level}
+                                            onChange={(value) => setEditForm(prev => ({ ...prev, chinese_level: value }))}
+                                            options={[
+                                                { value: '', label: t('admin.student.chinese_level') },
+                                                { value: 'HSK1', label: 'HSK 1' },
+                                                { value: 'HSK2', label: 'HSK 2' },
+                                                { value: 'HSK3', label: 'HSK 3' },
+                                                { value: 'HSK4', label: 'HSK 4' },
+                                                { value: 'HSK5', label: 'HSK 5' },
+                                                { value: 'HSK6', label: 'HSK 6' },
+                                                { value: 'Native', label: t('admin.student.chinese_level.native', { defaultValue: 'Native' }) },
+                                            ]}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Form Actions */}
+                                <div className="flex flex-col gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                    <button
+                                        type="button"
+                                        onClick={() => resetPassword(editingStudent)}
+                                        className="self-start px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors disabled:opacity-50"
+                                        disabled={resettingUserId === editingStudent.id}
+                                    >
+                                        {resettingUserId === editingStudent.id ? t('profile.saving') : t('admin.resetPassword')}
+                                    </button>
+                                    <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0">
+                                        <button
+                                            type="button"
+                                            onClick={closeEditModal}
+                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                        >
+                                            {t('common.cancel')}
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={updating}
+                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                        >
+                                            {updating ? t('profile.saving') : t('admin.saveChanges')}
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}

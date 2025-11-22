@@ -2,12 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { AdminUser, SecurityPreferences } from '../types/admin';
+import CustomSelect from '../components/CustomSelect';
 
 const defaultStaffForm = () => ({
     username: '',
     full_name: '',
     email: '',
-    staff_number: '',
+    phone: '',
 });
 
 const AdminStaffPage: React.FC = () => {
@@ -59,7 +60,7 @@ const AdminStaffPage: React.FC = () => {
                 member.username,
                 member.first_name,
                 member.email,
-                member.staff_number,
+                member.phone,
             ].map(val => (val || '').toLowerCase());
             return targets.some(val => val && val.includes(q));
         });
@@ -124,7 +125,7 @@ const AdminStaffPage: React.FC = () => {
             username: member.username || '',
             full_name: member.first_name || '',
             email: member.email || '',
-            staff_number: member.staff_number || '',
+            phone: member.staff_number || '',
         });
         setEditModalOpen(true);
     };
@@ -146,7 +147,7 @@ const AdminStaffPage: React.FC = () => {
             const payload = { ...form };
             if (!form.full_name.trim()) delete (payload as any).full_name;
             if (!form.email.trim()) delete (payload as any).email;
-            if (!form.staff_number.trim()) delete (payload as any).staff_number;
+            if (!form.phone.trim()) delete (payload as any).phone;
             const res = await fetch('/api/admin/create-staff/', {
                 method: 'POST',
                 headers,
@@ -173,7 +174,7 @@ const AdminStaffPage: React.FC = () => {
             const payload: Record<string, unknown> = {
                 first_name: editForm.full_name,
                 email: editForm.email,
-                account_meta: { staff_number: editForm.staff_number },
+                account_meta: { staff_number: editForm.phone },
             };
             const res = await fetch(`/api/admin/users/${editingStaff.id}/`, {
                 method: 'PATCH',
@@ -256,17 +257,17 @@ const AdminStaffPage: React.FC = () => {
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder={t('admin.searchStaff', { defaultValue: 'Search by name, username, or email' }) || ''}
-                            className="flex-1 border border-gray-300 dark:border-gray-700 rounded-md px-4 py-2 bg-white dark:bg-gray-800"
+                            className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
                         />
                     </div>
                     <div className="mt-6 overflow-x-auto">
-                        <table className="min-w-[640px] text-left text-sm">
+                        <table className="w-full text-left text-sm">
                             <thead>
                                 <tr className="text-gray-500 dark:text-gray-400">
                                     <th className="px-4 py-2 whitespace-nowrap">{t('admin.table.username')}</th>
                                     <th className="px-4 py-2 whitespace-nowrap">{t('profile.name')}</th>
                                     <th className="px-4 py-2 whitespace-nowrap">{t('admin.table.email')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.staffNumber')}</th>
+                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.table.phone')}</th>
                                     <th className="px-4 py-2 whitespace-nowrap">{t('admin.table.actions')}</th>
                                 </tr>
                             </thead>
@@ -281,7 +282,7 @@ const AdminStaffPage: React.FC = () => {
                                         <td className="px-4 py-2 font-mono text-xs whitespace-nowrap">{member.username}</td>
                                         <td className="px-4 py-2 whitespace-nowrap">{member.first_name || '—'}</td>
                                         <td className="px-4 py-2 whitespace-nowrap">{member.email || '—'}</td>
-                                        <td className="px-4 py-2 whitespace-nowrap">{member.staff_number || '—'}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">{member.phone || '—'}</td>
                                         <td className="px-4 py-2">
                                             <button type="button" onClick={() => openEditModal(member)} className="text-sm text-gray-900 dark:text-gray-100 font-medium">
                                                 {t('common.edit')}
@@ -296,92 +297,199 @@ const AdminStaffPage: React.FC = () => {
             </div>
 
             {modalOpen && (
-                <div className="fixed inset-0 z-30 flex items-center justify-center px-4 py-6 bg-black/50">
-                    <div className="w-full max-w-lg p-6 bg-white rounded-2xl shadow-2xl dark:bg-gray-950 border border-gray-200 dark:border-gray-800">
-                        <div className="flex items-center justify-between mb-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-lg bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700">
+                        <div className="flex items-center justify-between p-4 pb-3">
                             <div>
-                                <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">{t('admin.quickCreate', { defaultValue: 'Quick create' })}</p>
-                                <h2 className="text-xl font-semibold">{t('admin.addStaff', { defaultValue: 'Add staff' })}</h2>
+                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                                    {t('admin.quickCreate', { defaultValue: 'Quick create' })}
+                                </p>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('admin.addStaff', { defaultValue: 'Add staff' })}</h2>
                             </div>
-                            <button type="button" onClick={() => setModalOpen(false)} className="p-2 text-gray-500 rounded-md hover:text-gray-900 dark:text-gray-400 dark:hover:text-white" aria-label="Close">
-                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <button type="button" onClick={() => setModalOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
-                        <form onSubmit={submitStaff} className="flex flex-col gap-4">
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('admin.newStaffUsername')}
-                                <input value={form.username} onChange={e => setForm(prev => ({ ...prev, username: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900" required />
-                            </label>
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('profile.name')}
-                                <input value={form.full_name} onChange={e => setForm(prev => ({ ...prev, full_name: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900" />
-                            </label>
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('admin.table.email')}
-                                <input value={form.email} onChange={e => setForm(prev => ({ ...prev, email: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900" />
-                            </label>
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('admin.staffNumber')}
-                                <input value={form.staff_number} onChange={e => setForm(prev => ({ ...prev, staff_number: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900" />
-                            </label>
-                            <div className="flex justify-end gap-3">
-                                <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-sm">
-                                    {t('common.cancel')}
-                                </button>
-                                <button type="submit" disabled={creating} className="px-4 py-2 rounded-md bg-gray-900 text-white text-sm disabled:opacity-60">
-                                    {creating ? t('profile.saving') : t('admin.createStaff')}
-                                </button>
-                            </div>
-                        </form>
+                        <div className="px-4 pb-4">
+                            <form onSubmit={submitStaff} className="space-y-4" autoComplete="off">
+                                {/* Basic Info Row */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.newStaffUsername')}
+                                        </label>
+                                        <input
+                                            value={form.username}
+                                            onChange={e => setForm(prev => ({ ...prev, username: e.target.value }))}
+                                            required
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.newStaffUsername')}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('profile.name')}
+                                        </label>
+                                        <input
+                                            value={form.full_name}
+                                            onChange={e => setForm(prev => ({ ...prev, full_name: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('profile.name')}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Contact Info */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.table.email')}
+                                        </label>
+                                        <input
+                                            value={form.email}
+                                            onChange={e => setForm(prev => ({ ...prev, email: e.target.value }))}
+                                            type="email"
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.table.email')}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.table.phone')}
+                                        </label>
+                                        <input
+                                            value={form.phone}
+                                            onChange={e => setForm(prev => ({ ...prev, phone: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.table.phone')}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Form Actions */}
+                                <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                    <button
+                                        type="button"
+                                        onClick={() => setModalOpen(false)}
+                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                    >
+                                        {t('common.cancel')}
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={creating}
+                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                    >
+                                        {creating ? t('profile.saving') : t('admin.createStaff')}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}
 
             {editModalOpen && editingStaff && (
-                <div className="fixed inset-0 z-30 flex items-center justify-center px-4 py-6 bg-black/50">
-                    <div className="w-full max-w-2xl p-6 bg-white rounded-2xl shadow-2xl dark:bg-gray-950 border border-gray-200 dark:border-gray-800">
-                        <div className="flex items-center justify-between mb-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-lg bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700">
+                        <div className="flex items-center justify-between p-4 pb-3">
                             <div>
-                                <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">{t('admin.editStaff')}</p>
-                                <h2 className="text-xl font-semibold">{editingStaff.username}</h2>
+                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                                    {t('admin.editStaff')}
+                                </p>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{editingStaff.username}</h2>
                             </div>
-                            <button type="button" onClick={closeEditModal} className="p-2 text-gray-500 rounded-md hover:text-gray-900 dark:text-gray-400 dark:hover:text-white" aria-label={t('common.close')}>
-                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <button type="button" onClick={closeEditModal} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
-                        <form onSubmit={submitEditStaff} className="flex flex-col gap-4 max-h-[70vh] overflow-y-auto pr-1">
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('admin.table.username')}
-                                <input value={editForm.username} disabled className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-gray-100 dark:bg-gray-800" />
-                            </label>
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('profile.name')}
-                                <input value={editForm.full_name} onChange={e => setEditForm(prev => ({ ...prev, full_name: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900" />
-                            </label>
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('admin.table.email')}
-                                <input value={editForm.email} onChange={e => setEditForm(prev => ({ ...prev, email: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900" />
-                            </label>
-                            <label className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1">
-                                {t('admin.staffNumber')}
-                                <input value={editForm.staff_number} onChange={e => setEditForm(prev => ({ ...prev, staff_number: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 bg-white dark:bg-gray-900" />
-                            </label>
-                            <div className="flex flex-col gap-3 pt-2">
-                                <button type="button" onClick={() => resetPassword(editingStaff)} className="self-start px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-sm disabled:opacity-60" disabled={resettingUserId === editingStaff.id}>
-                                    {resettingUserId === editingStaff.id ? t('profile.saving') : t('admin.resetPassword')}
-                                </button>
-                                <div className="flex justify-end gap-3">
-                                    <button type="button" onClick={closeEditModal} className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-sm">{t('common.cancel')}</button>
-                                    <button type="submit" disabled={updating} className="px-4 py-2 rounded-md bg-gray-900 text-white text-sm disabled:opacity-60">
-                                        {updating ? t('profile.saving') : t('admin.saveChanges')}
-                                    </button>
+                        <div className="px-4 pb-4">
+                            <form onSubmit={submitEditStaff} className="space-y-4" autoComplete="off">
+                                {/* Username (disabled) */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {t('admin.table.username')}
+                                    </label>
+                                    <input
+                                        value={editForm.username}
+                                        disabled
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 transition-colors text-sm"
+                                    />
                                 </div>
-                            </div>
-                        </form>
+
+                                {/* Basic Info Row */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('profile.name')}
+                                        </label>
+                                        <input
+                                            value={editForm.full_name}
+                                            onChange={e => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('profile.name')}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.table.email')}
+                                        </label>
+                                        <input
+                                            value={editForm.email}
+                                            onChange={e => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                                            type="email"
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            placeholder={t('admin.table.email')}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Phone */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {t('admin.table.phone')}
+                                    </label>
+                                    <input
+                                        value={editForm.phone}
+                                        onChange={e => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                        placeholder={t('admin.table.phone')}
+                                    />
+                                </div>
+
+                                {/* Form Actions */}
+                                <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                    <button
+                                        type="button"
+                                        onClick={() => resetPassword(editingStaff)}
+                                        disabled={resettingUserId === editingStaff.id}
+                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                    >
+                                        {resettingUserId === editingStaff.id ? t('profile.saving') : t('admin.resetPassword')}
+                                    </button>
+                                    <div className="flex flex-col-reverse sm:flex-row sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0">
+                                        <button
+                                            type="button"
+                                            onClick={closeEditModal}
+                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                        >
+                                            {t('common.cancel')}
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={updating}
+                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                        >
+                                            {updating ? t('profile.saving') : t('admin.saveChanges')}
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}

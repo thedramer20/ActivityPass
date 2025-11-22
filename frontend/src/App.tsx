@@ -14,6 +14,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminStudentsPage from './pages/AdminStudentsPage';
 import AdminStaffPage from './pages/AdminStaffPage';
 import AdminCoursesPage from './pages/AdminCoursesPage';
+import AdminActivitiesPage from './pages/AdminActivitiesPage';
 import StaffDashboardPage from './pages/StaffDashboardPage';
 
 const setDocumentCssVar = (name: string, value: number) => {
@@ -47,6 +48,7 @@ const Navbar: React.FC = () => {
                 { label: t('admin.studentsTab', { defaultValue: 'Students' }), to: '/admin/students' },
                 { label: t('admin.staffTab', { defaultValue: 'Staff' }), to: '/admin/staff' },
                 { label: t('admin.coursesTab', { defaultValue: 'Courses' }), to: '/admin/courses' },
+                { label: t('admin.activitiesTab', { defaultValue: 'Activities' }), to: '/admin/activities' },
             ];
         }
         if (me?.role === 'staff') {
@@ -346,6 +348,7 @@ const App: React.FC = () => {
                 <Route path="/admin/students" element={<ProtectedRoute><AdminRoute><AdminStudentsPage /></AdminRoute></ProtectedRoute>} />
                 <Route path="/admin/staff" element={<ProtectedRoute><AdminRoute><AdminStaffPage /></AdminRoute></ProtectedRoute>} />
                 <Route path="/admin/courses" element={<ProtectedRoute><AdminRoute><AdminCoursesPage /></AdminRoute></ProtectedRoute>} />
+                <Route path="/admin/activities" element={<ProtectedRoute><AdminRoute><AdminActivitiesPage /></AdminRoute></ProtectedRoute>} />
                 <Route path="/staff" element={<ProtectedRoute><StaffRoute><StaffDashboardPage /></StaffRoute></ProtectedRoute>} />
                 <Route path="/" element={<ProtectedRoute><RoleAwareHome /></ProtectedRoute>} />
             </Routes>

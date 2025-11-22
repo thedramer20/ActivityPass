@@ -43,3 +43,25 @@ export type AdminCourse = {
     created_at: string;
     updated_at: string;
 };
+
+export type AdminActivity = {
+    id: number;
+    title: string;
+    description: string;
+    title_i18n: Record<string, string>;
+    description_i18n: Record<string, string>;
+    college_required: string | string[];
+    chinese_level_min: string;
+    countries: string | string[];
+    start_datetime: string;
+    end_datetime: string;
+    capacity: number;
+    location?: {
+        lat: number;
+        lng: number;
+        address?: string;
+    } | null;
+    created_by: number;
+    created_by_username: string;
+    created_at: string;
+};
