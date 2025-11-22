@@ -28,15 +28,15 @@ ActivityPass revolutionizes how students discover, apply for, and participate in
 
 ### Tech Stack
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Backend** | Python 3.11+, Django 5.2+, Django REST Framework | API, business logic, data management |
-| **Frontend** | React 18+, TypeScript, Vite, Tailwind CSS | User interface, responsive design |
-| **Database** | MySQL 8.0+ | Data persistence, complex queries |
-| **Authentication** | JWT, Django Auth | Secure user sessions, role management |
-| **Internationalization** | i18next, react-i18next | Bilingual content management |
-| **Maps** | AMap API, Leaflet | Location services, activity venues |
-| **Testing** | pytest, Vitest, React Testing Library | Quality assurance |
+| Component                | Technology                                       | Purpose                               |
+| ------------------------ | ------------------------------------------------ | ------------------------------------- |
+| **Backend**              | Python 3.11+, Django 5.2+, Django REST Framework | API, business logic, data management  |
+| **Frontend**             | React 18+, TypeScript, Vite, Tailwind CSS        | User interface, responsive design     |
+| **Database**             | MySQL 8.0+                                       | Data persistence, complex queries     |
+| **Authentication**       | JWT, Django Auth                                 | Secure user sessions, role management |
+| **Internationalization** | i18next, react-i18next                           | Bilingual content management          |
+| **Maps**                 | AMap API, Leaflet                                | Location services, activity venues    |
+| **Testing**              | pytest, Vitest, React Testing Library            | Quality assurance                     |
 
 ### Repository Structure
 
@@ -85,6 +85,7 @@ python run_all.py
 ```
 
 The script will:
+
 - ✅ Check for existing `.env` file or prompt for MySQL credentials
 - ✅ Create Python virtual environment
 - ✅ Install backend dependencies (shows package count)
@@ -211,11 +212,11 @@ CREATE DATABASE activitypass CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 Translation files are located in `frontend/src/locales/`:
 
 ```typescript
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
 function MyComponent() {
   const { t } = useTranslation();
-  return <h1>{t('welcome.title')}</h1>;
+  return <h1>{t("welcome.title")}</h1>;
 }
 ```
 
@@ -224,6 +225,7 @@ function MyComponent() {
 ### Available Scripts
 
 #### Backend
+
 ```bash
 cd backend
 python manage.py runserver          # Start development server
@@ -235,6 +237,7 @@ python manage.py seed_students     # Seed student data
 ```
 
 #### Frontend
+
 ```bash
 cd frontend
 npm start         # Start development server
@@ -276,7 +279,7 @@ python manage.py init_app
 
 ```yaml
 # docker-compose.yml (planned)
-version: '3.8'
+version: "3.8"
 services:
   db:
     image: mysql:8.0
@@ -361,6 +364,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 For questions or support:
+
 - Create an issue on GitHub
 - Contact the development team
 - Check the documentation
