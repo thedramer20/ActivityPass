@@ -80,20 +80,57 @@ else
 fi
 
 # Install MySQL/MariaDB
-if ! systemctl is-active --quiet mariadb; then
+print_step "Checking database service..."
+MYSQL_RUNNING=false
+MYSQL_CONTAINER=""
+
+# Check if system MariaDB/MySQL is running
+if systemctl is-active --quiet mariadb 2>/dev/null || systemctl is-active --quiet mysql 2>/dev/null; then
+    MYSQL_RUNNING=true
+    print_status "System MariaDB/MySQL is running"
+# Check for 1Panel Docker MySQL containers
+elif sudo docker ps --format "table {{.Names}}\t{{.Ports}}" | grep -q "3306"; then
+    MYSQL_CONTAINER=$(sudo docker ps --format "table {{.Names}}\t{{.Ports}}" | grep "3306" | head -1 | awk '{print $1}')
+    MYSQL_RUNNING=true
+    print_status "Found 1Panel MySQL container: $MYSQL_CONTAINER"
+fi
+
+if [ "$MYSQL_RUNNING" = false ]; then
     print_status "Installing MariaDB..."
     sudo dnf install -y mariadb-server
     sudo systemctl start mariadb
     sudo systemctl enable mariadb
     print_status "MariaDB installed and started"
 else
-    print_status "MariaDB already running"
+    print_status "Using existing MySQL/MariaDB service"
 fi
 
 # Setup database
 print_step "Setting up database..."
-read -p "Enter MySQL root password: " -s MYSQL_ROOT_PASSWORD
-echo
+
+if [ -n "$MYSQL_CONTAINER" ]; then
+    print_status "Using 1Panel MySQL container: $MYSQL_CONTAINER"
+    print_warning "Please ensure the MySQL container has the required database and user created"
+    print_warning "You may need to configure the database manually in 1Panel"
+    print_status "1Panel MySQL containers typically use these default credentials:"
+    print_status "  - Root Password: empty or '1panel'"
+    print_status "  - Access via: 1Panel Web UI → Database → MySQL"
+    
+    # For 1Panel containers, try common default passwords or prompt user
+    MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-""}
+    if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+        print_warning "1Panel MySQL containers often use default credentials"
+        read -p "Enter MySQL root password (default for 1Panel containers is often empty or '1panel'): " -s MYSQL_ROOT_PASSWORD
+        MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-"1panel"}
+    fi
+else
+    # System MariaDB setup
+    if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+        read -p "Enter MySQL root password: " -s MYSQL_ROOT_PASSWORD
+        echo
+    fi
+fi
+
 read -p "Enter database name [activitypass]: " DB_NAME
 DB_NAME=${DB_NAME:-activitypass}
 read -p "Enter database user [activitypass]: " DB_USER
@@ -101,14 +138,25 @@ DB_USER=${DB_USER:-activitypass}
 read -p "Enter database password: " -s DB_PASSWORD
 echo
 
-sudo mysql -u root -p"$MYSQL_ROOT_PASSWORD" << EOF
+# Try to connect and setup database
+print_status "Connecting to database..."
+if sudo mysql -u root -p"$MYSQL_ROOT_PASSWORD" -h 127.0.0.1 -P 3306 << EOF 2>/dev/null
 CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
+CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASSWORD';
 GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';
+GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'%';
 FLUSH PRIVILEGES;
 EOF
-
-print_status "Database setup completed"
+then
+    print_status "Database setup completed successfully"
+else
+    print_warning "Could not connect to database with provided credentials"
+    print_warning "You may need to:"
+    print_warning "1. Check MySQL root password"
+    print_warning "2. Create database manually in 1Panel"
+    print_warning "3. Update .env file with correct database credentials"
+fi
 
 # Setup environment file
 print_step "Setting up environment configuration..."

@@ -48,8 +48,8 @@ The `run_all.py` script (for local development) handles:
    # Clone repository
    git clone https://github.com/Al-rimi/ActivityPass.git .
 
-   # Make scripts executable
-   chmod +x scripts/sh/deploy.sh scripts/sh/update.sh scripts/sh/status.sh
+   # Make scripts executable (use sudo if permission denied)
+   chmod +x scripts/sh/deploy.sh scripts/sh/update.sh scripts/sh/status.sh || sudo chmod +x scripts/sh/deploy.sh scripts/sh/update.sh scripts/sh/status.sh
 
    # Run deployment
    ./scripts/sh/deploy.sh
@@ -184,14 +184,39 @@ After deployment, follow the `1panel_integration.md` guide to:
    sudo chown -R www-data:www-data /www/wwwroot/activitypass 2>/dev/null || true
    ```
 
-2. **Database Connection**:
+2. **Script Permission Errors**:
+
+   ```bash
+   # If chmod fails with "Operation not permitted"
+   sudo chmod +x scripts/sh/deploy.sh scripts/sh/update.sh scripts/sh/status.sh
+   ```
+
+3. **MySQL Port 3306 Already in Use**:
+
+   If you see "Bind on TCP/IP port. Got error: 98: Address already in use", it means port 3306 is already occupied by a 1Panel MySQL container. The deployment script will automatically detect and use the existing MySQL service.
+
+   ```bash
+   # Check what's using port 3306
+   sudo netstat -tlnp | grep :3306
+
+   # If it's a Docker container, the script will handle it automatically
+   sudo docker ps | grep mysql
+   ```
+
+   **1Panel MySQL Default Credentials**:
+
+   - Root Password: Often empty or "1panel"
+   - Host: 127.0.0.1
+   - Port: 3306
+
+4. **Database Connection**:
 
    ```bash
    sudo systemctl status mariadb
    mysql -u activitypass -p activitypass -e "SELECT 1;"
    ```
 
-3. **Backend Not Starting**:
+5. **Backend Not Starting**:
 
    ```bash
    cd /www/wwwroot/activitypass
@@ -199,7 +224,7 @@ After deployment, follow the `1panel_integration.md` guide to:
    ./start.sh
    ```
 
-4. **1Panel Configuration Issues**:
+6. **1Panel Configuration Issues**:
    - Check 1Panel website configuration
    - Verify reverse proxy rules
    - Ensure correct root directory: `/www/wwwroot/activitypass/public/`
