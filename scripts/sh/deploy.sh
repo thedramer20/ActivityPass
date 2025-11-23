@@ -298,13 +298,13 @@ for i in {1..3}; do
 done
 
 print_status "Running database migrations..."
-python manage.py migrate
+$PYTHON_CMD manage.py migrate
 
 print_status "Creating superuser..."
-echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'admin123')" | python manage.py shell
+echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'admin123')" | $PYTHON_CMD manage.py shell
 
 print_status "Collecting static files..."
-python manage.py collectstatic --noinput
+$PYTHON_CMD manage.py collectstatic --noinput
 
 cd ..
 
