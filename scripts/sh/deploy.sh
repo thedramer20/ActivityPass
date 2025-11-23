@@ -164,44 +164,41 @@ fi
 
 if [ -n "$MYSQL_CONTAINER" ]; then
     print_status "Using 1Panel MySQL container: $MYSQL_CONTAINER"
-    print_warning "Please ensure the MySQL container has the required database and user created"
-    print_warning "You may need to configure the database manually in 1Panel"
-    print_status "1Panel MySQL containers typically use these default credentials:"
-    print_status "  - Root Password: empty or '1panel'"
-    print_status "  - Access via: 1Panel Web UI → Database → MySQL"
+    print_warning "⚠️  IMPORTANT: You must create the database and user manually in 1Panel"
+    print_warning "1. Go to 1Panel Web UI (http://your-server-ip:9999)"
+    print_warning "2. Navigate to 'Database' → 'MySQL'"
+    print_warning "3. Create database: $DB_NAME"
+    print_warning "4. Create user: $DB_USER with password: $DB_PASSWORD"
+    print_warning "5. Grant ALL privileges on $DB_NAME to $DB_USER"
+    print_warning ""
     
-    # For 1Panel containers, try common default passwords or prompt user
-    MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-""}
-    if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-        print_warning "1Panel MySQL containers often use default credentials"
-        read -p "Enter MySQL root password (default for 1Panel containers is often empty or '1panel'): " -s MYSQL_ROOT_PASSWORD
-        MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-"1panel"}
+    # Get the container IP for database connection
+    CONTAINER_IP=$(sudo docker inspect $MYSQL_CONTAINER | grep -A 10 '"Networks"' | grep '"IPAddress"' | head -1 | cut -d'"' -f4)
+    if [ -n "$CONTAINER_IP" ]; then
+        DB_HOST=$CONTAINER_IP
+        print_status "Detected MySQL container IP: $CONTAINER_IP"
+    else
+        DB_HOST="127.0.0.1"
+        print_warning "Could not detect container IP, using 127.0.0.1"
     fi
+    
+    print_warning "The database host in .env will be set to: $DB_HOST"
+    print_warning ""
+    print_warning "Press Enter when you have created the database and user in 1Panel..."
+    read -p ""
+    
+    # Skip automatic database creation for 1Panel containers
+    print_status "Skipping automatic database setup for 1Panel container"
 else
     # System MariaDB setup
     if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
         read -p "Enter MySQL root password: " -s MYSQL_ROOT_PASSWORD
         echo
     fi
-fi
-
-# Prompt for database details if not found in .env
-if [ -z "$DB_NAME" ]; then
-    read -p "Enter database name [activitypass]: " DB_NAME
-    DB_NAME=${DB_NAME:-activitypass}
-fi
-if [ -z "$DB_USER" ]; then
-    read -p "Enter database user [activitypass]: " DB_USER
-    DB_USER=${DB_USER:-activitypass}
-fi
-if [ -z "$DB_PASSWORD" ]; then
-    read -p "Enter database password: " -s DB_PASSWORD
-    echo
-fi
-
-# Try to connect and setup database
-print_status "Connecting to database..."
-if sudo mysql -u root -p"$MYSQL_ROOT_PASSWORD" -h 127.0.0.1 -P 3306 << EOF 2>/dev/null
+    
+    # Try to connect and setup database
+    print_status "Connecting to database..."
+    if sudo mysql -u root -p"$MYSQL_ROOT_PASSWORD" -h 127.0.0.1 -P 3306 << EOF 2>/dev/null
 CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
 CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASSWORD';
@@ -209,14 +206,15 @@ GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';
 GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'%';
 FLUSH PRIVILEGES;
 EOF
-then
-    print_status "Database setup completed successfully"
-else
-    print_warning "Could not connect to database with provided credentials"
-    print_warning "You may need to:"
-    print_warning "1. Check MySQL root password"
-    print_warning "2. Create database manually in 1Panel"
-    print_warning "3. Update .env file with correct database credentials"
+    then
+        print_status "Database setup completed successfully"
+    else
+        print_warning "Could not connect to database with provided credentials"
+        print_warning "You may need to:"
+        print_warning "1. Check MySQL root password"
+        print_warning "2. Create database manually"
+        print_warning "3. Update .env file with correct database credentials"
+    fi
 fi
 
 # Setup environment file
@@ -260,6 +258,7 @@ fi
 sed -i "s/DB_NAME=.*/DB_NAME=$DB_NAME/" .env
 sed -i "s/DB_USER=.*/DB_USER=$DB_USER/" .env
 sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASSWORD/" .env
+sed -i "s/DB_HOST=.*/DB_HOST=$DB_HOST/" .env
 sed -i "s/DJANGO_SECRET_KEY=.*/DJANGO_SECRET_KEY=$SECRET_KEY/" .env
 sed -i "s/DJANGO_DEBUG=.*/DJANGO_DEBUG=false/" .env
 
