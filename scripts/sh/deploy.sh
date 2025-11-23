@@ -278,9 +278,10 @@ print_status "Environment configuration completed"
 
 # Setup backend
 print_step "Setting up Python backend..."
-cd backend
 $PYTHON_CMD -m venv .venv
 source .venv/bin/activate
+cp .env backend/.env
+cd backend
 
 # Upgrade pip with timeout and retry
 print_status "Upgrading pip..."
@@ -344,8 +345,9 @@ cat > start.sh << EOF
 #!/bin/bash
 # ActivityPass startup script for 1Panel
 
-cd $DEPLOY_DIR/backend
+cd $DEPLOY_DIR
 source .venv/bin/activate
+cd backend
 exec python manage.py runserver 127.0.0.1:8000
 EOF
 
