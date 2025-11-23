@@ -306,11 +306,6 @@ $PYTHON_CMD manage.py collectstatic --noinput
 
 cd ..
 
-# Deploy backend to deployment directory
-print_step "Deploying backend to deployment directory..."
-sudo mkdir -p "$DEPLOY_DIR"
-sudo cp -r backend "$DEPLOY_DIR/"
-
 # Build frontend
 print_step "Building React frontend..."
 cd frontend
@@ -328,29 +323,29 @@ sudo chmod -R 755 "$FRONTEND_DEPLOY_DIR"
 
 # Create a simple startup script for 1Panel
 print_step "Creating 1Panel startup script..."
-cat > "$DEPLOY_DIR/start.sh" << EOF
+cat > start.sh << EOF
 #!/bin/bash
 # ActivityPass startup script for 1Panel
 
-cd backend
+cd $DEPLOY_DIR/backend
 source .venv/bin/activate
 exec python manage.py runserver 127.0.0.1:8000
 EOF
 
-chmod +x "$DEPLOY_DIR/start.sh"
+chmod +x start.sh
 
 # Create a stop script
-cat > "$DEPLOY_DIR/stop.sh" << EOF
+cat > stop.sh << EOF
 #!/bin/bash
 # ActivityPass stop script for 1Panel
 
 pkill -f "manage.py runserver"
 EOF
 
-chmod +x "$DEPLOY_DIR/stop.sh"
+chmod +x stop.sh
 
 # Create a health check script
-cat > "$DEPLOY_DIR/health.sh" << EOF
+cat > health.sh << EOF
 #!/bin/bash
 # ActivityPass health check for 1Panel
 
@@ -364,7 +359,7 @@ else
 fi
 EOF
 
-chmod +x "$DEPLOY_DIR/health.sh"
+chmod +x health.sh
 
 print_status "🎉 1Panel deployment completed!"
 print_status ""
