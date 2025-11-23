@@ -311,6 +311,8 @@ cd ..
 # Build frontend
 print_step "Building React frontend..."
 cd frontend
+# Skip puppeteer browser download to avoid network timeouts
+export PUPPETEER_SKIP_DOWNLOAD=true
 npm install
 npm run build
 cd ..
