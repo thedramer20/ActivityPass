@@ -278,7 +278,7 @@ source .venv/bin/activate
 # Upgrade pip with timeout and retry
 print_status "Upgrading pip..."
 for i in {1..3}; do
-    if $PYTHON_CMD -m pip install --upgrade --timeout=60 pip; then
+    if $PYTHON_CMD -m pip install --upgrade --timeout=60 --no-cache-dir pip; then
         break
     else
         print_warning "Pip upgrade attempt $i failed, retrying..."
@@ -286,10 +286,10 @@ for i in {1..3}; do
     fi
 done
 
-# Install requirements with timeout and retry
+# Install requirements with timeout and retry (optimized for speed)
 print_status "Installing Python requirements..."
 for i in {1..3}; do
-    if $PYTHON_CMD -m pip install --timeout=60 -r requirements.txt; then
+    if $PYTHON_CMD -m pip install --timeout=60 --no-cache-dir --only-binary=all -r requirements.txt; then
         break
     else
         print_warning "Requirements installation attempt $i failed, retrying..."
