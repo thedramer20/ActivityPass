@@ -155,6 +155,13 @@ fi
 # Setup database
 print_step "Setting up database..."
 
+# Read existing database config from .env if it exists
+if [ -f .env ]; then
+    DB_NAME=$(grep "^DB_NAME=" .env | cut -d'=' -f2- | sed 's/^"//' | sed 's/"$//')
+    DB_USER=$(grep "^DB_USER=" .env | cut -d'=' -f2- | sed 's/^"//' | sed 's/"$//')
+    DB_PASSWORD=$(grep "^DB_PASSWORD=" .env | cut -d'=' -f2- | sed 's/^"//' | sed 's/"$//')
+fi
+
 if [ -n "$MYSQL_CONTAINER" ]; then
     print_status "Using 1Panel MySQL container: $MYSQL_CONTAINER"
     print_warning "Please ensure the MySQL container has the required database and user created"
@@ -178,12 +185,19 @@ else
     fi
 fi
 
-read -p "Enter database name [activitypass]: " DB_NAME
-DB_NAME=${DB_NAME:-activitypass}
-read -p "Enter database user [activitypass]: " DB_USER
-DB_USER=${DB_USER:-activitypass}
-read -p "Enter database password: " -s DB_PASSWORD
-echo
+# Prompt for database details if not found in .env
+if [ -z "$DB_NAME" ]; then
+    read -p "Enter database name [activitypass]: " DB_NAME
+    DB_NAME=${DB_NAME:-activitypass}
+fi
+if [ -z "$DB_USER" ]; then
+    read -p "Enter database user [activitypass]: " DB_USER
+    DB_USER=${DB_USER:-activitypass}
+fi
+if [ -z "$DB_PASSWORD" ]; then
+    read -p "Enter database password: " -s DB_PASSWORD
+    echo
+fi
 
 # Try to connect and setup database
 print_status "Connecting to database..."
@@ -208,15 +222,13 @@ fi
 # Setup environment file
 print_step "Setting up environment configuration..."
 
+# Read existing AMap key from .env if it exists
+AMAP_KEY=""
 if [ -f .env ]; then
-    print_status ".env file already exists, backing up..."
-    cp .env .env.backup.$(date +%Y%m%d_%H%M%S)
-fi
-
-# Copy from example if it exists
-if [ -f .env.example ]; then
-    cp .env.example .env
+    AMAP_KEY=$(grep "^VITE_AMAP_KEY=" .env | cut -d'=' -f2- | sed 's/^"//' | sed 's/"$//')
+    print_status ".env file already exists, reading existing configuration..."
 else
+    print_status "Creating new .env file..."
     # Create basic .env file
     cat > .env << 'EOF'
 DJANGO_SECRET_KEY=change-me-in-production
@@ -233,13 +245,18 @@ VITE_AMAP_KEY=your-amap-key-here
 EOF
 fi
 
-# Prompt for AMap API key
-read -p "Enter AMap API key (leave empty to skip): " AMAP_KEY
+# Prompt for AMap API key if not found
+if [ -z "$AMAP_KEY" ] || [ "$AMAP_KEY" = "your-amap-key-here" ]; then
+    read -p "Enter AMap API key (leave empty to skip): " AMAP_KEY
+fi
 
-# Generate random secret key
-SECRET_KEY=$($PYTHON_CMD -c "import secrets; print(secrets.token_urlsafe(50))")
+# Generate random secret key if not set
+SECRET_KEY=$(grep "^DJANGO_SECRET_KEY=" .env | cut -d'=' -f2- | sed 's/^"//' | sed 's/"$//')
+if [ -z "$SECRET_KEY" ] || [ "$SECRET_KEY" = "change-me-in-production" ]; then
+    SECRET_KEY=$($PYTHON_CMD -c "import secrets; print(secrets.token_urlsafe(50))")
+fi
 
-# Update .env file
+# Update .env file with current values
 sed -i "s/DB_NAME=.*/DB_NAME=$DB_NAME/" .env
 sed -i "s/DB_USER=.*/DB_USER=$DB_USER/" .env
 sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASSWORD/" .env
@@ -257,8 +274,28 @@ print_step "Setting up Python backend..."
 cd backend
 $PYTHON_CMD -m venv .venv
 source .venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
+
+# Upgrade pip with timeout and retry
+print_status "Upgrading pip..."
+for i in {1..3}; do
+    if pip install --upgrade --timeout=60 pip; then
+        break
+    else
+        print_warning "Pip upgrade attempt $i failed, retrying..."
+        sleep 5
+    fi
+done
+
+# Install requirements with timeout and retry
+print_status "Installing Python requirements..."
+for i in {1..3}; do
+    if pip install --timeout=60 -r requirements.txt; then
+        break
+    else
+        print_warning "Requirements installation attempt $i failed, retrying..."
+        sleep 5
+    fi
+done
 
 print_status "Running database migrations..."
 python manage.py migrate
