@@ -358,6 +358,9 @@ cp backend/manage.py .
 # Update the settings module path in the copied manage.py
 sed -i "s/os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ActivityPass.settings')/os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.ActivityPass.settings')/" manage.py
 
+# Copy requirements.txt to root directory for 1Panel runtime
+cp backend/requirements.txt .
+
 # Create a stop script
 cat > stop.sh << EOF
 #!/bin/bash
