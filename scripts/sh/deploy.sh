@@ -38,9 +38,19 @@ if [[ $EUID -eq 0 ]]; then
    exit 1
 fi
 
+# Check for existing domain name in .env
+DOMAIN_NAME=""
+if [ -f .env ]; then
+    DOMAIN_NAME=$(grep "^DOMAIN_NAME=" .env | cut -d'=' -f2- | sed 's/^"//' | sed 's/"$//')
+fi
+
+if [ -z "$DOMAIN_NAME" ]; then
+    read -p "Enter domain name: " DOMAIN_NAME
+fi
+
 # Ask for deployment folder name (alias)
 print_step "Configuring deployment..."
-read -p "Enter deployment folder name (alias, preferably your domain name): " ALIAS
+ALIAS="$DOMAIN_NAME"
 
 # Determine the deployment directories
 DEPLOY_DIR="/www/wwwroot/activitypass"
@@ -231,6 +241,7 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 CORS_ALLOW_ALL=true
 VITE_AMAP_KEY=your-amap-key-here
+DOMAIN_NAME=your-domain-here
 EOF
 fi
 
@@ -255,6 +266,12 @@ sed -i "s/DJANGO_DEBUG=.*/DJANGO_DEBUG=false/" .env
 
 if [ -n "$AMAP_KEY" ]; then
     sed -i "s|VITE_AMAP_KEY=.*|VITE_AMAP_KEY=$AMAP_KEY|" .env
+fi
+
+# Update DOMAIN_NAME
+sed -i "s/DOMAIN_NAME=.*/DOMAIN_NAME=$DOMAIN_NAME/" .env
+if ! grep -q "^DOMAIN_NAME=" .env; then
+    echo "DOMAIN_NAME=$DOMAIN_NAME" >> .env
 fi
 
 print_status "Environment configuration completed"
