@@ -347,11 +347,16 @@ cat > start.sh << EOF
 
 cd $DEPLOY_DIR
 source .venv/bin/activate
-cd backend
 exec python manage.py runserver 127.0.0.1:8000
 EOF
 
 chmod +x start.sh
+
+# Copy manage.py to root directory for 1Panel runtime compatibility
+print_step "Setting up manage.py for 1Panel runtime..."
+cp backend/manage.py .
+# Update the settings module path in the copied manage.py
+sed -i "s/os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ActivityPass.settings')/os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.ActivityPass.settings')/" manage.py
 
 # Create a stop script
 cat > stop.sh << EOF
