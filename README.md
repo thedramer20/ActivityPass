@@ -116,7 +116,7 @@ python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py init_app  # Creates admin user and seeds data
+python manage.py init_app  # Creates admin user and seeds data (users, students, courses, and academic terms from course data)
 python manage.py runserver
 ```
 

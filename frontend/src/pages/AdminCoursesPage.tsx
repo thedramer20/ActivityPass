@@ -12,6 +12,7 @@ const defaultCourseForm = () => ({
     teacher: '',
     location: '',
     term: '',
+    academic_year: '',
     first_week_monday: '',
     day_of_week: '1',
     periods: [] as number[],
@@ -55,6 +56,9 @@ const AdminCoursesPage: React.FC = () => {
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [viewModalOpen, setViewModalOpen] = useState(false);
     const [viewingCourse, setViewingCourse] = useState<AdminCourse | null>(null);
+    const [academicTerms, setAcademicTerms] = useState<any[]>([]);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<string>('');
 
     const authHeaders = useMemo(() => {
         const base: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -80,9 +84,22 @@ const AdminCoursesPage: React.FC = () => {
         }
     }, [tokens, authHeaders, t]);
 
+    const fetchAcademicTerms = useCallback(async () => {
+        if (!tokens) return;
+        try {
+            const res = await fetch('/api/admin/academic-terms/?is_active=true', { headers: authHeaders });
+            if (!res.ok) throw new Error('failed');
+            const data = await res.json();
+            setAcademicTerms(data);
+        } catch (err) {
+            console.error('Failed to fetch academic terms:', err);
+        }
+    }, [tokens, authHeaders]);
+
     useEffect(() => {
         fetchCourses();
-    }, [fetchCourses]);
+        fetchAcademicTerms();
+    }, [fetchCourses, fetchAcademicTerms]);
 
     const termOptions = useMemo(() => {
         const unique = new Set<string>();
@@ -118,6 +135,60 @@ const AdminCoursesPage: React.FC = () => {
     const formatPeriods = (course: AdminCourse) => (course.periods?.length ? course.periods.join(', ') : '—');
     const formatWeeks = (course: AdminCourse) => (course.week_pattern?.length ? course.week_pattern.join(', ') : '—');
 
+    // Generate academic year options dynamically (1 year behind to 4 years ahead)
+    const generateAcademicYearOptions = useMemo(() => {
+        const currentYear = new Date().getFullYear();
+        const years = [];
+
+        // Add 1 year behind
+        years.push(`${currentYear - 1}-${currentYear}`);
+
+        // Add current year and 4 years ahead
+        for (let i = 0; i <= 4; i++) {
+            years.push(`${currentYear + i}-${currentYear + i + 1}`);
+        }
+
+        return years.map(year => ({ value: year, label: year }));
+    }, []);
+
+    // Calculate week 1 Monday date from academic year and term
+    const calculateWeekOneMonday = useCallback((academicYear: string, term: string): string => {
+        // Find the academic term that matches the academic year and semester
+        const semester = term === 'first' ? 1 : term === 'second' ? 2 : 1;
+        const matchingTerm = academicTerms.find(t =>
+            t.academic_year === academicYear && t.semester === semester
+        );
+        return matchingTerm ? matchingTerm.first_week_monday : '';
+    }, [academicTerms]);
+
+    // Calculate academic year from a week 1 Monday date
+    const calculateAcademicYearFromDate = useCallback((firstWeekMonday: string): string => {
+        if (!firstWeekMonday) return '';
+
+        const matchingTerm = academicTerms.find(t => t.first_week_monday === firstWeekMonday);
+        return matchingTerm ? matchingTerm.academic_year : '';
+    }, [academicTerms]);
+
+    // Handle academic year change
+    const handleAcademicYearChange = useCallback((academicYear: string) => {
+        const firstWeekMonday = calculateWeekOneMonday(academicYear, form.term);
+        setForm(prev => ({
+            ...prev,
+            academic_year: academicYear,
+            first_week_monday: firstWeekMonday
+        }));
+    }, [calculateWeekOneMonday, form.term]);
+
+    // Handle term change
+    const handleTermChange = useCallback((term: string) => {
+        const firstWeekMonday = calculateWeekOneMonday(form.academic_year, term);
+        setForm(prev => ({
+            ...prev,
+            term: term,
+            first_week_monday: firstWeekMonday
+        }));
+    }, [calculateWeekOneMonday, form.academic_year]);
+
 
     const openViewModal = (course: AdminCourse) => {
         setViewingCourse(course);
@@ -137,6 +208,7 @@ const AdminCoursesPage: React.FC = () => {
 
     const openEditModal = (course: AdminCourse) => {
         setEditingCourse(course);
+        const academicYear = calculateAcademicYearFromDate(course.first_week_monday || '');
         setForm({
             code: course.code || '',
             title: course.title || '',
@@ -144,6 +216,7 @@ const AdminCoursesPage: React.FC = () => {
             teacher: course.teacher || '',
             location: course.location || '',
             term: course.term || '',
+            academic_year: academicYear,
             first_week_monday: course.first_week_monday || '',
             day_of_week: String(course.day_of_week || 1),
             periods: course.periods || [],
@@ -163,6 +236,24 @@ const AdminCoursesPage: React.FC = () => {
         evt.preventDefault();
         if (!tokens) return;
         setSaving(true);
+
+        // Check if the academic term exists
+        const semester = form.term === 'first' ? 1 : form.term === 'second' ? 2 : 1;
+        const termExists = academicTerms.some(term =>
+            term.academic_year === form.academic_year && term.semester === semester
+        );
+
+        if (!termExists && form.academic_year && form.term) {
+            // Academic term doesn't exist, show date picker
+            setShowDatePicker(true);
+            setSaving(false);
+            return;
+        }
+
+        await saveCourse();
+    };
+
+    const saveCourse = async () => {
         const payload = {
             code: form.code.trim(),
             title: form.title.trim(),
@@ -187,6 +278,45 @@ const AdminCoursesPage: React.FC = () => {
             console.error(err);
             setNotice({ type: 'error', text: t('admin.courseSaveError') });
         } finally {
+            setSaving(false);
+        }
+    };
+
+    const saveWithNewTerm = async () => {
+        if (!selectedDate) return;
+
+        // Create the academic term first
+        const semester = form.term === 'first' ? 1 : form.term === 'second' ? 2 : 1;
+        const termData = {
+            term: `${form.academic_year}-${semester}`,
+            academic_year: form.academic_year,
+            semester: semester,
+            first_week_monday: selectedDate,
+            is_active: true
+        };
+
+        try {
+            const res = await fetch('/api/admin/academic-terms/', {
+                method: 'POST',
+                headers: authHeaders,
+                body: JSON.stringify(termData)
+            });
+            if (!res.ok) throw new Error('term_creation_failed');
+
+            // Update local state
+            setAcademicTerms(prev => [...prev, termData]);
+
+            // Update form with the selected date
+            setForm(prev => ({ ...prev, first_week_monday: selectedDate }));
+
+            // Hide date picker and save course
+            setShowDatePicker(false);
+            setSelectedDate('');
+            await saveCourse();
+
+        } catch (err) {
+            console.error(err);
+            setNotice({ type: 'error', text: 'Failed to create academic term' });
             setSaving(false);
         }
     };
@@ -416,7 +546,7 @@ const AdminCoursesPage: React.FC = () => {
                                         </label>
                                         <CustomSelect
                                             value={form.term}
-                                            onChange={(value) => setForm(prev => ({ ...prev, term: value }))}
+                                            onChange={handleTermChange}
                                             options={[
                                                 { value: '', label: t('admin.courseForm.term') },
                                                 { value: 'first', label: t('admin.courseForm.term.first') },
@@ -426,12 +556,15 @@ const AdminCoursesPage: React.FC = () => {
                                     </div>
                                     <div className="space-y-2">
                                         <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.courseForm.firstWeek')}
+                                            {t('admin.courseForm.academicYear', { defaultValue: 'Academic Year' })}
                                         </label>
-                                        <CustomDatePicker
-                                            value={form.first_week_monday}
-                                            onChange={(value) => setForm(prev => ({ ...prev, first_week_monday: value }))}
-                                            placeholder={t('admin.courseForm.firstWeek')}
+                                        <CustomSelect
+                                            value={form.academic_year}
+                                            onChange={handleAcademicYearChange}
+                                            options={[
+                                                { value: '', label: t('admin.courseForm.academicYear', { defaultValue: 'Academic Year' }) },
+                                                ...generateAcademicYearOptions
+                                            ]}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -450,12 +583,12 @@ const AdminCoursesPage: React.FC = () => {
                                 </div>
 
                                 {/* Sessions and Weeks */}
-                                <div className="grid gap-6 lg:grid-cols-2">
-                                    <div className="space-y-3">
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
                                         <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.periods')}
                                         </label>
-                                        <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-6 gap-1.5 p-3 bg-app-light-surface-secondary border border-app-light-border rounded-lg dark:bg-app-dark-surface-secondary dark:border-app-dark-border">
+                                        <div className="flex gap-1 p-3 bg-app-light-input-bg border border-app-light-border rounded-lg dark:bg-app-dark-input-bg dark:border-app-dark-border overflow-x-auto">
                                             {Array.from({ length: 13 }, (_, i) => i + 1).map(session => (
                                                 <button
                                                     key={session}
@@ -468,8 +601,8 @@ const AdminCoursesPage: React.FC = () => {
                                                                 : [...prev.periods, session].sort((a, b) => a - b)
                                                         }));
                                                     }}
-                                                    className={`flex items-center justify-center w-full h-8 text-xs font-medium rounded-md transition-all duration-200 ${form.periods.includes(session)
-                                                        ? 'bg-app-light-accent text-app-light-text-on-accent shadow-sm'
+                                                    className={`flex items-center justify-center flex-1 min-w-[2rem] h-8 text-xs font-medium rounded transition-all duration-200 ${form.periods.includes(session)
+                                                        ? 'bg-app-light-accent text-app-light-text-on-accent'
                                                         : 'bg-app-light-surface text-app-light-text-primary border border-app-light-border hover:bg-app-light-surface-hover dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover'
                                                         }`}
                                                 >
@@ -478,11 +611,11 @@ const AdminCoursesPage: React.FC = () => {
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="space-y-3">
+                                    <div className="space-y-2">
                                         <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.weeks')}
                                         </label>
-                                        <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-6 gap-1.5 p-3 bg-app-light-surface-secondary border border-app-light-border rounded-lg dark:bg-app-dark-surface-secondary dark:border-app-dark-border">
+                                        <div className="flex gap-1 p-3 bg-app-light-input-bg border border-app-light-border rounded-lg dark:bg-app-dark-input-bg dark:border-app-dark-border overflow-x-auto">
                                             {Array.from({ length: 17 }, (_, i) => i + 1).map(week => (
                                                 <button
                                                     key={week}
@@ -495,8 +628,8 @@ const AdminCoursesPage: React.FC = () => {
                                                                 : [...prev.week_pattern, week].sort((a, b) => a - b)
                                                         }));
                                                     }}
-                                                    className={`flex items-center justify-center w-full h-8 text-xs font-medium rounded-md transition-all duration-200 ${form.week_pattern.includes(week)
-                                                        ? 'bg-app-light-accent text-app-light-text-on-accent shadow-sm'
+                                                    className={`flex items-center justify-center flex-1 min-w-[2rem] h-8 text-xs font-medium rounded transition-all duration-200 ${form.week_pattern.includes(week)
+                                                        ? 'bg-app-light-accent text-app-light-text-on-accent'
                                                         : 'bg-app-light-surface text-app-light-text-primary border border-app-light-border hover:bg-app-light-surface-hover dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover'
                                                         }`}
                                                 >
@@ -535,9 +668,6 @@ const AdminCoursesPage: React.FC = () => {
                     <div className="w-full max-w-2xl border shadow-2xl bg-app-light-surface border-app-light-border rounded-2xl dark:bg-app-dark-surface dark:border-app-dark-border">
                         <div className="flex items-center justify-between p-4 pb-3">
                             <div>
-                                <p className="text-xs tracking-wider uppercase text-app-light-text-secondary dark:text-app-dark-text-secondary">
-                                    {t('admin.viewCourse', { defaultValue: 'View Course' })}
-                                </p>
                                 <h2 className="text-lg font-semibold text-app-light-text-primary dark:text-app-dark-text-primary">{viewingCourse.title}</h2>
                             </div>
                             <button type="button" onClick={closeViewModal} className="p-2 transition-colors rounded-lg text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover" aria-label={t('common.close')}>
@@ -586,23 +716,23 @@ const AdminCoursesPage: React.FC = () => {
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
                                         <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.courseForm.name')}
+                                            {t('admin.courseForm.teacher')}
                                         </label>
                                         <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {viewingCourse.title || '—'}
+                                            {viewingCourse.teacher || '—'}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.courseForm.description')}
+                                            {t('admin.courseForm.location')}
                                         </label>
                                         <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {viewingCourse.course_type || '—'}
+                                            {viewingCourse.location || '—'}
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Term, Date, Day */}
+                                {/* Term, Academic Year, Day */}
                                 <div className="grid gap-4 sm:grid-cols-3">
                                     <div className="space-y-2">
                                         <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
@@ -615,15 +745,18 @@ const AdminCoursesPage: React.FC = () => {
                                     </div>
                                     <div className="space-y-2">
                                         <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.courseForm.instructor')}
+                                            {t('admin.courseForm.academicYear')}
                                         </label>
                                         <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {viewingCourse.teacher || '—'}
+                                            {(() => {
+                                                const academicYear = calculateAcademicYearFromDate(viewingCourse.first_week_monday || '');
+                                                return academicYear || '—';
+                                            })()}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.courseForm.schedule')}
+                                            {t('admin.courseForm.day')}
                                         </label>
                                         <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {formatDay(viewingCourse.day_of_week)}
@@ -631,33 +764,43 @@ const AdminCoursesPage: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Time and Periods */}
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.course.time')}
-                                        </label>
-                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {formatTime(viewingCourse)}
-                                        </div>
-                                    </div>
+                                {/* Sessions and Weeks */}
+                                <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.periods')}
                                         </label>
-                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {formatPeriods(viewingCourse)}
+                                        <div className="flex gap-1 p-3 bg-app-light-surface border border-app-light-border rounded-lg dark:bg-app-dark-surface dark:border-app-dark-border overflow-x-auto">
+                                            {Array.from({ length: 13 }, (_, i) => i + 1).map(session => (
+                                                <div
+                                                    key={session}
+                                                    className={`flex items-center justify-center flex-1 min-w-[2rem] h-8 text-xs font-medium rounded transition-all duration-200 ${viewingCourse.periods?.includes(session)
+                                                        ? 'bg-app-light-accent text-app-light-text-on-accent'
+                                                        : 'bg-app-light-surface text-app-light-text-secondary border border-app-light-border dark:bg-app-dark-surface dark:text-app-dark-text-secondary dark:border-app-dark-border'
+                                                        }`}
+                                                >
+                                                    {session}
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
-                                </div>
-
-                                {/* Weeks */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                        {t('admin.courseForm.weeks')}
-                                    </label>
-                                    <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                        {formatWeeks(viewingCourse)}
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
+                                            {t('admin.courseForm.weeks')}
+                                        </label>
+                                        <div className="flex gap-1 p-3 bg-app-light-surface border border-app-light-border rounded-lg dark:bg-app-dark-surface dark:border-app-dark-border overflow-x-auto">
+                                            {Array.from({ length: 17 }, (_, i) => i + 1).map(week => (
+                                                <div
+                                                    key={week}
+                                                    className={`flex items-center justify-center flex-1 min-w-[2rem] h-8 text-xs font-medium rounded transition-all duration-200 ${viewingCourse.week_pattern?.includes(week)
+                                                        ? 'bg-app-light-accent text-app-light-text-on-accent'
+                                                        : 'bg-app-light-surface text-app-light-text-secondary border border-app-light-border dark:bg-app-dark-surface dark:text-app-dark-text-secondary dark:border-app-dark-border'
+                                                        }`}
+                                                >
+                                                    {week}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -690,6 +833,59 @@ const AdminCoursesPage: React.FC = () => {
                                             {t('common.edit')}
                                         </button>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showDatePicker && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-md border shadow-2xl bg-app-light-surface border-app-light-border rounded-2xl dark:bg-app-dark-surface dark:border-app-dark-border">
+                        <div className="flex items-center justify-between p-4 pb-3">
+                            <div>
+                                <h2 className="text-lg font-semibold text-app-light-text-primary dark:text-app-dark-text-primary">
+                                    {t('admin.missingAcademicTerm')}
+                                </h2>
+                            </div>
+                            <button type="button" onClick={() => setShowDatePicker(false)} className="p-2 transition-colors rounded-lg text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover" aria-label={t('common.close')}>
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="px-4 pb-4">
+                            <div className="space-y-4">
+                                <p className="text-sm text-app-light-text-secondary dark:text-app-dark-text-secondary">
+                                    {t('admin.selectFirstWeekMondayDescription')}
+                                </p>
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
+                                        {t('admin.firstWeekMonday')}
+                                    </label>
+                                    <CustomDatePicker
+                                        value={selectedDate}
+                                        onChange={setSelectedDate}
+                                        placeholder={t('admin.selectDate')}
+                                    />
+                                </div>
+                                <div className="flex flex-col-reverse pt-3 space-y-2 space-y-reverse border-t sm:flex-row sm:justify-end sm:space-x-3 sm:space-y-0 border-app-light-border dark:border-app-dark-border">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowDatePicker(false)}
+                                        className="w-full px-4 py-2 text-sm font-medium transition-colors border rounded-lg sm:w-auto text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-border focus:ring-offset-2 dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-border"
+                                    >
+                                        {t('common.cancel')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={saveWithNewTerm}
+                                        disabled={!selectedDate || saving}
+                                        className="w-full px-4 py-2 text-sm font-medium transition-colors border border-transparent rounded-lg sm:w-auto text-app-light-text-on-accent bg-app-light-accent hover:bg-app-light-accent-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-app-dark-accent dark:text-app-dark-text-on-accent dark:hover:bg-app-dark-accent-hover dark:focus:ring-app-dark-accent"
+                                    >
+                                        {saving ? t('profile.saving') : t('admin.createTermAndSave')}
+                                    </button>
                                 </div>
                             </div>
                         </div>

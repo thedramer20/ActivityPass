@@ -87,3 +87,35 @@ class CourseEnrollment(models.Model):
 
     def __str__(self):
         return f"CourseEnrollment(course={self.course_id}, student={self.student_id})"
+
+
+class AcademicTerm(models.Model):
+    """Academic term configuration with the official week 1 Monday date."""
+    term = models.CharField(max_length=64, unique=True, help_text="Term identifier (e.g., '2025-2026-1', '2024-2025-2')")
+    academic_year = models.CharField(max_length=64, help_text="Academic year (e.g., '2024-2025')")
+    semester = models.PositiveIntegerField(help_text="Semester number (1 or 2)")
+    first_week_monday = models.DateField(help_text="The official Monday date of week 1 for this term")
+    is_active = models.BooleanField(default=True, help_text="Whether this term configuration is active")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-academic_year', '-semester']
+        verbose_name = "Academic Term"
+        verbose_name_plural = "Academic Terms"
+
+    def __str__(self):
+        return f"AcademicTerm({self.term}: {self.first_week_monday})"
+
+    def save(self, *args, **kwargs):
+        """Auto-populate academic_year and semester from term if not set."""
+        if not self.academic_year or not self.semester:
+            # Parse term like "2025-2026-1" -> academic_year="2025-2026", semester=1
+            parts = self.term.split('-')
+            if len(parts) >= 3:
+                self.academic_year = f"{parts[0]}-{parts[1]}"
+                try:
+                    self.semester = int(parts[2])
+                except (ValueError, IndexError):
+                    pass
+        super().save(*args, **kwargs)

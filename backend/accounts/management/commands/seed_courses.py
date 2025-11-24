@@ -2,14 +2,15 @@ import json
 import os
 import random
 from pathlib import Path
+from datetime import datetime
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from accounts.models import Course, StudentProfile, CourseEnrollment
+from accounts.models import Course, StudentProfile, CourseEnrollment, AcademicTerm
 
 
 class Command(BaseCommand):
-    help = "Seed courses from backend/accounts/seed_data/courses.json and enroll students."
+    help = "Seed courses from backend/accounts/seed_data/courses.json, create academic terms from course data, and enroll students."
 
     def add_arguments(self, parser):
         parser.add_argument('--file', type=str, default=None, help='JSON file path (defaults to backend/accounts/seed_data/courses.json)')
@@ -28,6 +29,58 @@ class Command(BaseCommand):
 
         with json_path.open('r', encoding='utf-8') as f:
             courses_data = json.load(f)
+
+        # Extract and create academic terms from course data
+        academic_terms_data = {}
+        
+        for course_data in courses_data:
+            term = course_data.get('term', '').strip()
+            first_week_monday_str = course_data.get('first_week_monday', '').strip()
+            
+            if term and first_week_monday_str:
+                # Parse term format: "2024-2025-1" -> academic_year="2024-2025", semester=1
+                if '-' in term:
+                    parts = term.split('-')
+                    if len(parts) >= 3:
+                        try:
+                            academic_year = f"{parts[0]}-{parts[1]}"
+                            semester = int(parts[2])
+                            
+                            # Convert first_week_monday string to date
+                            first_week_monday = datetime.strptime(first_week_monday_str, '%Y-%m-%d').date()
+                            
+                            # Use term as key to avoid duplicates
+                            academic_terms_data[term] = {
+                                'term': term,
+                                'academic_year': academic_year,
+                                'semester': semester,
+                                'first_week_monday': first_week_monday,
+                                'is_active': True,
+                            }
+                            
+                        except (ValueError, IndexError):
+                            self.stderr.write(self.style.WARNING(f'Invalid term format: {term} or date: {first_week_monday_str}'))
+
+        # Create academic terms
+        created_terms_count = 0
+        for term_data in academic_terms_data.values():
+            term_obj, created = AcademicTerm.objects.get_or_create(
+                term=term_data['term'],
+                defaults=term_data
+            )
+            
+            if created:
+                self.stdout.write(f'Created academic term: {term_obj}')
+                created_terms_count += 1
+            else:
+                # Update if first_week_monday has changed
+                if term_obj.first_week_monday != term_data['first_week_monday']:
+                    term_obj.first_week_monday = term_data['first_week_monday']
+                    term_obj.save()
+                    self.stdout.write(f'Updated academic term: {term_obj}')
+
+        if created_terms_count > 0:
+            self.stdout.write(self.style.SUCCESS(f'Created {created_terms_count} academic terms from course data'))
 
         # Group courses by student_id
         courses_by_student = {}

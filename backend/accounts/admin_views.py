@@ -7,7 +7,7 @@ from rest_framework.response import Response
 import random
 import string
 
-from .serializers import UserSerializer, CourseSerializer, CourseEnrollmentSerializer
+from .serializers import UserSerializer, CourseSerializer, CourseEnrollmentSerializer, AcademicTermSerializer
 from rest_framework.decorators import api_view, permission_classes
 
 @api_view(['POST'])
@@ -27,7 +27,7 @@ def import_courses(request):
         else:
             errors.append({'index': idx, 'error': serializer.errors, 'data': data})
     return Response({'created': created, 'errors': errors}, status=201 if created else 400)
-from .models import AccountMeta, StudentProfile, SecurityPreference, Course, CourseEnrollment
+from .models import AccountMeta, StudentProfile, SecurityPreference, Course, CourseEnrollment, AcademicTerm
 
 
 SPECIAL_CHARS = '!@#$%^&*'
@@ -202,6 +202,22 @@ class AdminCourseEnrollmentViewSet(viewsets.ModelViewSet):
         if student_id:
             qs = qs.filter(student_id=student_id)
         return qs.order_by('-created_at')
+
+
+class AdminAcademicTermViewSet(viewsets.ModelViewSet):
+    serializer_class = AcademicTermSerializer
+    permission_classes = [IsAdmin]
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
+
+    def get_queryset(self):
+        qs = AcademicTerm.objects.all()
+        is_active = self.request.query_params.get('is_active')
+        if is_active is not None:
+            qs = qs.filter(is_active=is_active.lower() == 'true')
+        academic_year = self.request.query_params.get('academic_year')
+        if academic_year:
+            qs = qs.filter(academic_year=academic_year)
+        return qs.order_by('-academic_year', '-semester')
 
 
 @api_view(['POST'])

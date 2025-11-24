@@ -37,6 +37,7 @@ router.register(r'student-profile', StudentProfileViewSet, basename='student-pro
 router.register(r'admin/users', accounts_admin.AdminUserViewSet, basename='admin-users')
 router.register(r'admin/courses', accounts_admin.AdminCourseViewSet, basename='admin-courses')
 router.register(r'admin/course-enrollments', accounts_admin.AdminCourseEnrollmentViewSet, basename='admin-course-enrollments')
+router.register(r'admin/academic-terms', accounts_admin.AdminAcademicTermViewSet, basename='admin-academic-terms')
 
 FRONTEND_INDEX = Path(__file__).resolve().parent.parent.parent / 'frontend' / 'build' / 'index.html'
 
