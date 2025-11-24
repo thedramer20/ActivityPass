@@ -1,15 +1,67 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
-from rest_framework import permissions, status
+from rest_framework import permissions, status, serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.db import transaction
 
 from .models import StudentProfile, AccountMeta, SecurityPreference
 from .serializers import UserSerializer, StudentProfileSerializer
 from .utils import to_key, gender_key
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Custom token serializer that provides specific error messages for different authentication scenarios.
+    """
+
+    def validate(self, attrs):
+        username = attrs.get('username')
+        password = attrs.get('password')
+
+        if username and password:
+            # Check if user exists first
+            user_exists = get_user_model().objects.filter(username=username).exists()
+
+            if not user_exists:
+                # User doesn't exist - check if it's a valid student ID format
+                if username.isdigit() and len(username) == 12:
+                    # Valid student ID format but user doesn't exist
+                    raise serializers.ValidationError({
+                        'detail': 'Student ID not registered. Please contact your administrator.',
+                        'error_type': 'user_not_found_student'
+                    })
+                else:
+                    # Invalid format or admin/staff username doesn't exist
+                    raise serializers.ValidationError({
+                        'detail': 'Username is not registered.',
+                        'error_type': 'user_not_found'
+                    })
+
+            # User exists, try to authenticate
+            try:
+                # Call parent validate which will handle password checking
+                data = super().validate(attrs)
+                return data
+            except serializers.ValidationError as e:
+                # Password is incorrect for existing user
+                if username.isdigit() and len(username) == 12:
+                    # Student ID exists but password wrong
+                    raise serializers.ValidationError({
+                        'detail': 'Password is incorrect.',
+                        'error_type': 'invalid_credentials_student'
+                    })
+                else:
+                    # Admin/staff username exists but password wrong
+                    raise serializers.ValidationError({
+                        'detail': 'Password is incorrect.',
+                        'error_type': 'invalid_credentials'
+                    })
+        # Fallback to parent validation for other cases
+        return super().validate(attrs)
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -93,10 +145,12 @@ def _valid_student_id(s: str) -> bool:
 class TokenObtainOrCreateStudentView(TokenObtainPairView):
     """
     Custom token obtain:
-    - If user exists -> normal behavior
+    - If user exists -> normal behavior with specific error messages
     - If user does not exist AND username matches valid student ID AND password == '000000'
       -> create user + StudentProfile with derived year, then return tokens.
     """
+    serializer_class = CustomTokenObtainPairSerializer
+
     @transaction.atomic
     def post(self, request, *args, **kwargs):
         username = request.data.get('username') or request.data.get('student_id')
@@ -110,5 +164,5 @@ class TokenObtainOrCreateStudentView(TokenObtainPairView):
                 except Exception:
                     year = 1
                 StudentProfile.objects.create(user=user, student_id=username, year=year)
-        # Fallback to standard token obtain
+        # Fallback to standard token obtain with custom error handling
         return super().post(request, *args, **kwargs)

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePreferences } from '../context/PreferencesContext';
 
@@ -11,6 +11,18 @@ const LanguageSwitcher: React.FC = () => {
     const { t } = useTranslation();
     const { language, setLanguage } = usePreferences();
     const [open, setOpen] = useState(false);
+    const selectRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const change = (lng: string) => {
         if (lng !== 'en' && lng !== 'zh') return;
@@ -19,24 +31,36 @@ const LanguageSwitcher: React.FC = () => {
     };
 
     return (
-        <div className="relative">
+        <div ref={selectRef} className="relative">
             <button
-                onClick={() => setOpen(o => !o)}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-sm font-medium shadow-sm text-gray-700 dark:text-gray-200 transition-colors"
+                onClick={() => setOpen(!open)}
+                className="w-full px-3 py-2 bg-app-light-surface border border-app-light-border rounded-lg focus:ring-1 focus:ring-app-light-accent focus:border-app-light-accent dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent transition-all duration-200 text-sm text-left flex items-center justify-between min-h-[2.5rem] hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                 aria-haspopup="listbox"
                 aria-expanded={open}
             >
-                <span>{language === 'en' ? t('lang.english') : t('lang.chinese')}</span>
-                <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                <span className="text-app-light-text-primary dark:text-app-dark-text-primary">
+                    {language === 'en' ? t('lang.english') : t('lang.chinese')}
+                </span>
+                <svg
+                    className={`w-4 h-4 text-app-light-text-secondary transition-transform dark:text-app-dark-text-secondary ${open ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
             {open && (
-                <ul className="absolute right-0 mt-2 w-32 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg z-20" role="listbox">
+                <ul className="absolute z-50 w-full mt-1 border rounded-lg shadow-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border" role="listbox">
                     {langs.map(l => (
                         <li key={l.code}>
                             <button
-                                className={`w-full text-left px-3 py-2 text-sm transition-colors ${language === l.code ? 'font-semibold text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                                className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover ${language === l.code
+                                        ? 'bg-app-light-accent text-app-light-text-on-accent dark:bg-app-dark-accent dark:text-app-dark-text-on-accent'
+                                        : 'text-app-light-text-primary dark:text-app-dark-text-primary'
+                                    }`}
                                 onClick={() => change(l.code)}
                                 role="option"
                                 aria-selected={language === l.code}

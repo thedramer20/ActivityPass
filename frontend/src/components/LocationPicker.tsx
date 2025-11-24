@@ -360,7 +360,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
             <button
                 type="button"
                 onClick={() => setIsOpen(true)}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm text-left flex items-center justify-between min-h-[2.5rem]"
+                className="w-full px-3 py-2 bg-app-light-input-bg border border-app-light-border rounded-lg focus:ring-1 focus:ring-app-light-accent hover:border-app-light-border-hover focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent dark:hover:border-app-dark-border-hover transition-all duration-200 text-sm text-left flex items-center justify-between min-h-[2.5rem]"
             >
                 <span className={value ? '' : 'text-gray-500 dark:text-gray-400'}>
                     {value ? formatLocationDisplay(value) : placeholder}
@@ -378,20 +378,20 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
             {isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="w-full max-w-5xl overflow-hidden bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700">
+                    <div className="w-full max-w-5xl overflow-hidden border shadow-2xl bg-app-light-surface border-app-light-border rounded-2xl dark:bg-app-dark-surface dark:border-app-dark-border">
                         <div className="flex items-center justify-between p-4 pb-3">
                             <div>
-                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                                <p className="text-xs tracking-wider uppercase text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                     {t('location.selectLocation', { defaultValue: 'Select Location' })}
                                 </p>
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                <h2 className="text-lg font-semibold text-app-light-text-primary dark:text-app-dark-text-primary">
                                     {t('location.chooseLocation', { defaultValue: 'Choose Activity Location' })}
                                 </h2>
                             </div>
                             <button
                                 type="button"
                                 onClick={handleCancel}
-                                className="p-2 text-gray-400 transition-colors rounded-lg hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                className="p-2 transition-colors rounded-lg text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover"
                                 aria-label={t('common.close')}
                             >
                                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -401,18 +401,18 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                         </div>
 
                         <div className="p-4">
-                            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                            <p className="mb-4 text-sm text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                 {t('location.clickToSelect', { defaultValue: 'Click on the map to select the activity location' })}
                             </p>
 
                             {tempLocation && (
-                                <div className="p-3 mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+                                <div className="p-3 mb-4 border rounded-lg border-app-light-border bg-app-light-surface dark:bg-app-dark-surface dark:border-app-dark-border">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            <p className="text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                                 {t('location.selectedCoordinates', { defaultValue: 'Selected:' })}
                                             </p>
-                                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                                            <p className="mt-1 text-sm text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                                 {isLoadingAddress ? (
                                                     <span>{t('location.loadingAddress')}</span>
                                                 ) : (
@@ -421,7 +421,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                                             </p>
                                         </div>
                                         {tempLocation.address && (
-                                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                            <div className="text-xs text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                                 {tempLocation.lat.toFixed(6)}, {tempLocation.lng.toFixed(6)}
                                             </div>
                                         )}
@@ -429,7 +429,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                                 </div>
                             )}
 
-                            <div className="h-[500px] rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                            <div className="h-[500px] rounded-lg overflow-hidden border border-app-light-border dark:border-app-dark-border">
                                 <MapContainer
                                     center={getInitialCenter() as [number, number]}
                                     zoom={15}
@@ -445,11 +445,11 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                                 </MapContainer>
                             </div>
 
-                            <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+                            <div className="flex items-center justify-end gap-3 p-4 border-t border-app-light-border dark:border-app-dark-border bg-app-light-surface dark:bg-app-dark-surface/50">
                                 <button
                                     type="button"
                                     onClick={handleCancel}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400"
+                                    className="px-4 py-2 text-sm font-medium transition-colors border rounded-lg text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-2 focus:ring-app-light-accent focus:ring-offset-2 dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent"
                                 >
                                     {t('common.cancel')}
                                 </button>
@@ -457,7 +457,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                                     type="button"
                                     onClick={handleConfirm}
                                     disabled={!tempLocation}
-                                    className="px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600"
+                                    className="px-4 py-2 text-sm font-medium text-white transition-colors border border-transparent rounded-lg bg-app-light-accent hover:bg-app-light-accent-hover focus:ring-2 focus:ring-app-light-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-app-dark-accent dark:hover:bg-app-dark-accent-hover dark:focus:ring-app-dark-accent"
                                 >
                                     {t('location.confirmLocation', { defaultValue: 'Confirm Location' })}
                                 </button>

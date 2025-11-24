@@ -215,7 +215,7 @@ const AdminCoursesPage: React.FC = () => {
                         <h1 className="text-2xl font-semibold">{t('admin.manageCourses', { defaultValue: 'Manage courses' })}</h1>
                     </div>
                     <div className="flex gap-2">
-                        <button type="button" onClick={openCreateModal} className="px-4 py-2 text-sm text-white bg-gray-900 rounded-md">
+                        <button type="button" onClick={openCreateModal} className="px-4 py-2 text-sm transition-colors border border-transparent rounded-lg text-app-light-text-on-accent bg-app-light-accent hover:bg-app-light-accent-hover focus:ring-2 focus:ring-app-light-accent focus:ring-offset-2 dark:bg-app-dark-accent dark:text-app-dark-text-on-accent dark:hover:bg-app-dark-accent-hover dark:focus:ring-app-dark-accent">
                             {t('admin.addCourse', { defaultValue: 'Add course' })}
                         </button>
                     </div>
@@ -223,19 +223,19 @@ const AdminCoursesPage: React.FC = () => {
 
                 {notice && (
                     <div className={`rounded-md border px-4 py-3 text-sm ${notice.type === 'success'
-                        ? 'border-green-200 bg-green-50 text-green-800 dark:border-green-700 dark:bg-green-900/30 dark:text-green-100'
+                        ? 'border-app-light-accent bg-app-light-accent/10 text-app-light-text-primary dark:border-app-dark-accent dark:bg-app-dark-accent/10 dark:text-app-dark-text-primary'
                         : 'border-red-200 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-100'}`}>
                         {notice.text}
                     </div>
                 )}
 
-                <section className="p-5 bg-white border border-gray-200 shadow-sm rounded-xl dark:border-gray-800 dark:bg-gray-900">
+                <section className="p-5 border shadow-sm bg-app-light-surface border-app-light-border rounded-xl dark:border-app-dark-border dark:bg-app-dark-surface">
                     <div className="grid gap-3 sm:grid-cols-3">
                         <input
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder={t('admin.searchStudents', { defaultValue: 'Search…' }) || ''}
-                            className="px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                            className="px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent hover:border-app-light-border-hover focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent dark:hover:border-app-dark-border-hover"
                         />
                         <CustomSelect
                             value={termFilter}
@@ -257,9 +257,9 @@ const AdminCoursesPage: React.FC = () => {
 
                     <div className="mt-6">
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
+                            <table className="w-full text-sm text-left">
                                 <thead>
-                                    <tr className="text-gray-500 dark:text-gray-400">
+                                    <tr className="text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                         <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.term')}</th>
                                         <th className="px-4 py-2 whitespace-nowrap min-w-[200px]">{t('admin.course.title')}</th>
                                         <th className="px-4 py-2 whitespace-nowrap">{t('admin.course.teacher')}</th>
@@ -274,29 +274,29 @@ const AdminCoursesPage: React.FC = () => {
                                 <tbody>
                                     {!filteredCourses.length && !loading && (
                                         <tr>
-                                            <td colSpan={9} className="py-6 text-center text-gray-500">{t('admin.noCourses')}</td>
+                                            <td colSpan={9} className="py-6 text-center text-app-light-text-secondary dark:text-app-dark-text-secondary">{t('admin.noCourses')}</td>
                                         </tr>
                                     )}
                                     {loading && (
                                         <tr>
-                                            <td colSpan={9} className="py-6 text-center text-gray-500">{t('admin.table.loading')}</td>
+                                            <td colSpan={9} className="py-6 text-center text-app-light-text-secondary dark:text-app-dark-text-secondary">{t('admin.table.loading')}</td>
                                         </tr>
                                     )}
                                     {filteredCourses.map(course => (
-                                        <tr key={course.id} className="border-t border-gray-100 dark:border-gray-800">
+                                        <tr key={course.id} className="border-t border-app-light-border dark:border-app-dark-border">
                                             <td className="px-4 py-2 whitespace-nowrap">
-                                                {course.term === 'first' ? t('admin.courseForm.term.first') : 
-                                                 course.term === 'second' ? t('admin.courseForm.term.second') : 
-                                                 course.term || '—'}
+                                                {course.term === 'first' ? t('admin.courseForm.term.first') :
+                                                    course.term === 'second' ? t('admin.courseForm.term.second') :
+                                                        course.term || '—'}
                                             </td>
                                             <td className="px-4 py-2 min-w-[200px]">
-                                                <p className="font-medium text-gray-900 dark:text-gray-100">{course.title}</p>
-                                                <p className="text-xs text-gray-500">{course.code || '—'} · {
+                                                <p className="font-medium text-app-light-text-primary dark:text-app-dark-text-primary">{course.title}</p>
+                                                <p className="text-xs text-app-light-text-secondary dark:text-app-dark-text-secondary">{course.code || '—'} · {
                                                     course.course_type === 'Theory' ? t('admin.courseForm.type.theory') :
-                                                    course.course_type === 'Technical' ? t('admin.courseForm.type.technical') :
-                                                    course.course_type === 'Practice' ? t('admin.courseForm.type.practice') :
-                                                    course.course_type === 'Experiment' ? t('admin.courseForm.type.experiment') :
-                                                    course.course_type || '—'
+                                                        course.course_type === 'Technical' ? t('admin.courseForm.type.technical') :
+                                                            course.course_type === 'Practice' ? t('admin.courseForm.type.practice') :
+                                                                course.course_type === 'Experiment' ? t('admin.courseForm.type.experiment') :
+                                                                    course.course_type || '—'
                                                 }</p>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap">{course.teacher || '—'}</td>
@@ -306,7 +306,7 @@ const AdminCoursesPage: React.FC = () => {
                                             <td className="px-4 py-2 whitespace-nowrap">{formatWeeks(course)}</td>
                                             <td className="px-4 py-2 whitespace-nowrap">{course.location || '—'}</td>
                                             <td className="px-4 py-2 text-right whitespace-nowrap">
-                                                <button type="button" onClick={() => openViewModal(course)} className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                <button type="button" onClick={() => openViewModal(course)} className="text-sm font-medium transition-colors text-app-light-text-primary dark:text-app-dark-text-primary hover:text-app-light-accent dark:hover:text-app-dark-accent">
                                                     {t('common.view')}
                                                 </button>
                                             </td>
@@ -321,15 +321,15 @@ const AdminCoursesPage: React.FC = () => {
 
             {modalOpen && (
                 <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-8 bg-black/60 backdrop-blur-sm">
-                    <div className="w-full max-w-2xl bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700 mt-8 mb-8">
+                    <div className="w-full max-w-2xl mt-8 mb-8 border shadow-2xl bg-app-light-surface border-app-light-border rounded-2xl dark:bg-app-dark-surface dark:border-app-dark-border">
                         <div className="flex items-center justify-between p-4 pb-3">
                             <div>
-                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                                <p className="text-xs tracking-wider uppercase text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                     {editingCourse ? t('admin.editCourse') : t('admin.addCourse')}
                                 </p>
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{form.title || t('admin.course.title')}</h2>
+                                <h2 className="text-lg font-semibold text-app-light-text-primary dark:text-app-dark-text-primary">{form.title || t('admin.course.title')}</h2>
                             </div>
-                            <button type="button" onClick={closeModal} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
+                            <button type="button" onClick={closeModal} className="p-2 transition-colors rounded-lg text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover" aria-label={t('common.close')}>
                                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -340,18 +340,18 @@ const AdminCoursesPage: React.FC = () => {
                                 {/* Basic Info Row */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.code')}
                                         </label>
                                         <input
                                             value={form.code}
                                             onChange={e => setForm(prev => ({ ...prev, code: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent hover:border-app-light-border-hover focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.courseForm.code')}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.type')}
                                         </label>
                                         <CustomSelect
@@ -370,14 +370,14 @@ const AdminCoursesPage: React.FC = () => {
 
                                 {/* Title */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                         {t('admin.courseForm.title')}
                                     </label>
                                     <input
                                         value={form.title}
                                         onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))}
                                         required
-                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                        className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent hover:border-app-light-border-hover focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent dark:hover:border-app-dark-border-hover"
                                         placeholder={t('admin.courseForm.title')}
                                     />
                                 </div>
@@ -385,24 +385,24 @@ const AdminCoursesPage: React.FC = () => {
                                 {/* Teacher and Location */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.teacher')}
                                         </label>
                                         <input
                                             value={form.teacher}
                                             onChange={e => setForm(prev => ({ ...prev, teacher: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent hover:border-app-light-border-hover focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.courseForm.teacher')}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.location')}
                                         </label>
                                         <input
                                             value={form.location}
                                             onChange={e => setForm(prev => ({ ...prev, location: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent hover:border-app-light-border-hover focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.courseForm.location')}
                                         />
                                     </div>
@@ -411,7 +411,7 @@ const AdminCoursesPage: React.FC = () => {
                                 {/* Term, Date, Day */}
                                 <div className="grid gap-4 sm:grid-cols-3">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.term')}
                                         </label>
                                         <CustomSelect
@@ -425,7 +425,7 @@ const AdminCoursesPage: React.FC = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.firstWeek')}
                                         </label>
                                         <CustomDatePicker
@@ -435,7 +435,7 @@ const AdminCoursesPage: React.FC = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.day')}
                                         </label>
                                         <CustomSelect
@@ -452,10 +452,10 @@ const AdminCoursesPage: React.FC = () => {
                                 {/* Sessions and Weeks */}
                                 <div className="grid gap-6 lg:grid-cols-2">
                                     <div className="space-y-3">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.periods')}
                                         </label>
-                                        <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-6 gap-1.5 p-3 bg-gray-50 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-600">
+                                        <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-6 gap-1.5 p-3 bg-app-light-surface-secondary border border-app-light-border rounded-lg dark:bg-app-dark-surface-secondary dark:border-app-dark-border">
                                             {Array.from({ length: 13 }, (_, i) => i + 1).map(session => (
                                                 <button
                                                     key={session}
@@ -468,11 +468,10 @@ const AdminCoursesPage: React.FC = () => {
                                                                 : [...prev.periods, session].sort((a, b) => a - b)
                                                         }));
                                                     }}
-                                                    className={`flex items-center justify-center w-full h-8 text-xs font-medium rounded-md transition-all duration-200 ${
-                                                        form.periods.includes(session)
-                                                            ? 'bg-blue-600 text-white shadow-sm'
-                                                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-600'
-                                                    }`}
+                                                    className={`flex items-center justify-center w-full h-8 text-xs font-medium rounded-md transition-all duration-200 ${form.periods.includes(session)
+                                                        ? 'bg-app-light-accent text-app-light-text-on-accent shadow-sm'
+                                                        : 'bg-app-light-surface text-app-light-text-primary border border-app-light-border hover:bg-app-light-surface-hover dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover'
+                                                        }`}
                                                 >
                                                     {session}
                                                 </button>
@@ -480,10 +479,10 @@ const AdminCoursesPage: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.weeks')}
                                         </label>
-                                        <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-6 gap-1.5 p-3 bg-gray-50 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-600">
+                                        <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-6 gap-1.5 p-3 bg-app-light-surface-secondary border border-app-light-border rounded-lg dark:bg-app-dark-surface-secondary dark:border-app-dark-border">
                                             {Array.from({ length: 17 }, (_, i) => i + 1).map(week => (
                                                 <button
                                                     key={week}
@@ -496,11 +495,10 @@ const AdminCoursesPage: React.FC = () => {
                                                                 : [...prev.week_pattern, week].sort((a, b) => a - b)
                                                         }));
                                                     }}
-                                                    className={`flex items-center justify-center w-full h-8 text-xs font-medium rounded-md transition-all duration-200 ${
-                                                        form.week_pattern.includes(week)
-                                                            ? 'bg-blue-600 text-white shadow-sm'
-                                                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-600'
-                                                    }`}
+                                                    className={`flex items-center justify-center w-full h-8 text-xs font-medium rounded-md transition-all duration-200 ${form.week_pattern.includes(week)
+                                                        ? 'bg-app-light-accent text-app-light-text-on-accent shadow-sm'
+                                                        : 'bg-app-light-surface text-app-light-text-primary border border-app-light-border hover:bg-app-light-surface-hover dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover'
+                                                        }`}
                                                 >
                                                     {week}
                                                 </button>
@@ -510,18 +508,18 @@ const AdminCoursesPage: React.FC = () => {
                                 </div>
 
                                 {/* Form Actions */}
-                                <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                <div className="flex flex-col-reverse pt-3 space-y-2 space-y-reverse border-t sm:flex-row sm:justify-end sm:space-x-3 sm:space-y-0 border-app-light-border dark:border-app-dark-border">
                                     <button
                                         type="button"
                                         onClick={closeModal}
-                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                        className="w-full px-4 py-2 text-sm font-medium transition-colors border rounded-lg sm:w-auto text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-border focus:ring-offset-2 dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-border"
                                     >
                                         {t('common.cancel')}
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={saving}
-                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                        className="w-full px-4 py-2 text-sm font-medium transition-colors border border-transparent rounded-lg sm:w-auto text-app-light-text-on-accent bg-app-light-accent hover:bg-app-light-accent-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-app-dark-accent dark:text-app-dark-text-on-accent dark:hover:bg-app-dark-accent-hover dark:focus:ring-app-dark-accent"
                                     >
                                         {saving ? t('profile.saving') : t('common.save')}
                                     </button>
@@ -533,16 +531,16 @@ const AdminCoursesPage: React.FC = () => {
             )}
 
             {viewModalOpen && viewingCourse && (
-                <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-8 bg-black/60 backdrop-blur-sm">
-                    <div className="w-full max-w-2xl bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700 mt-8 mb-8">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-2xl border shadow-2xl bg-app-light-surface border-app-light-border rounded-2xl dark:bg-app-dark-surface dark:border-app-dark-border">
                         <div className="flex items-center justify-between p-4 pb-3">
                             <div>
-                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                                <p className="text-xs tracking-wider uppercase text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                     {t('admin.viewCourse', { defaultValue: 'View Course' })}
                                 </p>
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{viewingCourse.title}</h2>
+                                <h2 className="text-lg font-semibold text-app-light-text-primary dark:text-app-dark-text-primary">{viewingCourse.title}</h2>
                             </div>
-                            <button type="button" onClick={closeViewModal} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
+                            <button type="button" onClick={closeViewModal} className="p-2 transition-colors rounded-lg text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover" aria-label={t('common.close')}>
                                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -553,33 +551,33 @@ const AdminCoursesPage: React.FC = () => {
                                 {/* Basic Info Row */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.code')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {viewingCourse.code || '—'}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.type')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {viewingCourse.course_type === 'Theory' ? t('admin.courseForm.type.theory') :
-                                             viewingCourse.course_type === 'Technical' ? t('admin.courseForm.type.technical') :
-                                             viewingCourse.course_type === 'Practice' ? t('admin.courseForm.type.practice') :
-                                             viewingCourse.course_type === 'Experiment' ? t('admin.courseForm.type.experiment') :
-                                             viewingCourse.course_type || '—'}
+                                                viewingCourse.course_type === 'Technical' ? t('admin.courseForm.type.technical') :
+                                                    viewingCourse.course_type === 'Practice' ? t('admin.courseForm.type.practice') :
+                                                        viewingCourse.course_type === 'Experiment' ? t('admin.courseForm.type.experiment') :
+                                                            viewingCourse.course_type || '—'}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Title */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                         {t('admin.courseForm.title')}
                                     </label>
-                                    <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                    <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                         {viewingCourse.title || '—'}
                                     </div>
                                 </div>
@@ -587,19 +585,19 @@ const AdminCoursesPage: React.FC = () => {
                                 {/* Teacher and Location */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            {t('admin.courseForm.teacher')}
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
+                                            {t('admin.courseForm.name')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
-                                            {viewingCourse.teacher || '—'}
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
+                                            {viewingCourse.title || '—'}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            {t('admin.courseForm.location')}
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
+                                            {t('admin.courseForm.description')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
-                                            {viewingCourse.location || '—'}
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
+                                            {viewingCourse.course_type || '—'}
                                         </div>
                                     </div>
                                 </div>
@@ -607,27 +605,27 @@ const AdminCoursesPage: React.FC = () => {
                                 {/* Term, Date, Day */}
                                 <div className="grid gap-4 sm:grid-cols-3">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.term')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {viewingCourse.term === 'first' ? t('admin.courseForm.term.first') :
-                                             viewingCourse.term === 'second' ? t('admin.courseForm.term.second') : viewingCourse.term || '—'}
+                                                viewingCourse.term === 'second' ? t('admin.courseForm.term.second') : viewingCourse.term || '—'}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            {t('admin.courseForm.firstWeek')}
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
+                                            {t('admin.courseForm.instructor')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
-                                            {viewingCourse.first_week_monday || '—'}
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
+                                            {viewingCourse.teacher || '—'}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            {t('admin.courseForm.day')}
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
+                                            {t('admin.courseForm.schedule')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {formatDay(viewingCourse.day_of_week)}
                                         </div>
                                     </div>
@@ -636,18 +634,18 @@ const AdminCoursesPage: React.FC = () => {
                                 {/* Time and Periods */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.course.time')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {formatTime(viewingCourse)}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.courseForm.periods')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {formatPeriods(viewingCourse)}
                                         </div>
                                     </div>
@@ -655,29 +653,29 @@ const AdminCoursesPage: React.FC = () => {
 
                                 {/* Weeks */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                         {t('admin.courseForm.weeks')}
                                     </label>
-                                    <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                    <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                         {formatWeeks(viewingCourse)}
                                     </div>
                                 </div>
 
                                 {/* Form Actions */}
-                                <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                <div className="flex flex-col-reverse pt-3 space-y-2 space-y-reverse border-t sm:flex-row sm:justify-between sm:space-x-3 sm:space-y-0 border-app-light-border dark:border-app-dark-border">
                                     <button
                                         type="button"
                                         onClick={() => deleteCourse(viewingCourse.id)}
                                         disabled={deletingId === viewingCourse.id}
-                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-red-500 dark:hover:bg-red-600 transition-colors"
+                                        className="w-full px-4 py-2 text-sm font-medium transition-colors border rounded-lg sm:w-auto text-app-light-error bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-error focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-app-dark-surface dark:text-app-dark-error dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-error"
                                     >
                                         {t('admin.courseDelete')}
                                     </button>
-                                    <div className="flex flex-col-reverse sm:flex-row sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0">
+                                    <div className="flex flex-col-reverse space-y-2 space-y-reverse sm:flex-row sm:space-x-3 sm:space-y-0">
                                         <button
                                             type="button"
                                             onClick={closeViewModal}
-                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                            className="w-full px-4 py-2 text-sm font-medium transition-colors border rounded-lg sm:w-auto text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-border focus:ring-offset-2 dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-border"
                                         >
                                             {t('common.close')}
                                         </button>
@@ -687,7 +685,7 @@ const AdminCoursesPage: React.FC = () => {
                                                 closeViewModal();
                                                 openEditModal(viewingCourse);
                                             }}
-                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                            className="w-full px-4 py-2 text-sm font-medium transition-colors border border-transparent rounded-lg sm:w-auto text-app-light-text-on-accent bg-app-light-accent hover:bg-app-light-accent-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 dark:bg-app-dark-accent dark:text-app-dark-text-on-accent dark:hover:bg-app-dark-accent-hover dark:focus:ring-app-dark-accent"
                                         >
                                             {t('common.edit')}
                                         </button>

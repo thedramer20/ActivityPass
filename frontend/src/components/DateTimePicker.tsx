@@ -131,7 +131,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm text-left flex items-center justify-between"
+                className="flex items-center justify-between w-full px-3 py-2 text-sm text-left transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent hover:border-app-light-border-hover focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent dark:hover:border-app-dark-border-hover"
             >
                 <span className={value ? '' : 'text-gray-500 dark:text-gray-400'}>
                     {value ? formatDisplayDateTime(value) : placeholder}
@@ -147,25 +147,25 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
             </button>
 
             {isOpen && (
-                <div className="absolute z-50 w-96 mt-1 bg-white border border-gray-300 rounded-xl shadow-2xl dark:bg-gray-800 dark:border-gray-600 overflow-hidden">
+                <div className="absolute z-50 mt-1 overflow-hidden border shadow-2xl w-96 bg-app-light-surface border-app-light-border rounded-xl dark:bg-app-dark-surface dark:border-app-dark-border">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between p-4 border-b border-app-light-border dark:border-app-dark-border">
                         <button
                             type="button"
                             onClick={() => changeMonth('prev')}
-                            className="p-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            className="p-2 transition-colors rounded-lg text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        <span className="text-sm font-semibold text-app-light-text-primary dark:text-app-dark-text-primary">
                             {currentDate.getFullYear()} {monthNames[currentDate.getMonth()]}
                         </span>
                         <button
                             type="button"
                             onClick={() => changeMonth('next')}
-                            className="p-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            className="p-2 transition-colors rounded-lg text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
@@ -176,14 +176,14 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                     <div className="flex">
                         {/* Date Section */}
                         <div className="flex-1 p-4">
-                            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">
+                            <h3 className="mb-3 text-xs font-medium tracking-wider uppercase text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                 {t('datetime.date', { defaultValue: 'Date' })}
                             </h3>
 
                             {/* Weekday headers */}
                             <div className="grid grid-cols-7 gap-1 mb-2">
                                 {weekdayNames.map((day, index) => (
-                                    <div key={index} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-1">
+                                    <div key={index} className="py-1 text-xs font-medium text-center text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                         {day}
                                     </div>
                                 ))}
@@ -195,8 +195,8 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                                     const isSelected = value && (() => {
                                         const selectedDate = new Date(value);
                                         return selectedDate.getDate() === day &&
-                                               selectedDate.getMonth() === currentDate.getMonth() &&
-                                               selectedDate.getFullYear() === currentDate.getFullYear();
+                                            selectedDate.getMonth() === currentDate.getMonth() &&
+                                            selectedDate.getFullYear() === currentDate.getFullYear();
                                     })();
 
                                     return (
@@ -205,15 +205,13 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                                             type="button"
                                             onClick={() => day && handleDateSelect(day)}
                                             disabled={!day}
-                                            className={`text-center text-sm py-2 rounded-lg transition-colors ${
-                                                day
-                                                    ? `hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                                                        isSelected
-                                                            ? 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
-                                                            : 'text-gray-900 dark:text-gray-100'
-                                                      }`
-                                                    : ''
-                                            }`}
+                                            className={`text-center text-sm py-2 rounded-lg transition-colors ${day
+                                                ? `hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover ${isSelected
+                                                    ? 'bg-app-light-accent text-app-light-text-on-accent hover:bg-app-light-accent-hover dark:bg-app-dark-accent dark:text-app-dark-text-on-accent dark:hover:bg-app-dark-accent-hover'
+                                                    : 'text-app-light-text-primary dark:text-app-dark-text-primary'
+                                                }`
+                                                : ''
+                                                }`}
                                         >
                                             {day}
                                         </button>
@@ -223,15 +221,15 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                         </div>
 
                         {/* Time Section */}
-                        <div className="w-32 p-4 border-l border-gray-200 dark:border-gray-600">
-                            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">
+                        <div className="w-32 p-4 border-l border-app-light-border dark:border-app-dark-border">
+                            <h3 className="mb-3 text-xs font-medium tracking-wider uppercase text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                 {t('datetime.time', { defaultValue: 'Time' })}
                             </h3>
 
                             <div className="space-y-3">
                                 {/* Hours */}
                                 <div className="relative">
-                                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                    <label className="block mb-1 text-xs text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                         {t('datetime.hour', { defaultValue: 'Hour' })}
                                     </label>
                                     <button
@@ -240,7 +238,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                                             setHourDropdownOpen(!hourDropdownOpen);
                                             setMinuteDropdownOpen(false);
                                         }}
-                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm text-left flex items-center justify-between"
+                                        className="flex items-center justify-between w-full px-3 py-2 text-sm text-left transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent hover:border-app-light-border-hover focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent dark:hover:border-app-dark-border-hover"
                                     >
                                         <span>{String(selectedTime.hour).padStart(2, '0')}</span>
                                         <svg
@@ -254,7 +252,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                                     </button>
 
                                     {hourDropdownOpen && (
-                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-600 max-h-48 overflow-y-auto">
+                                        <div className="absolute z-50 w-full mt-1 overflow-y-auto border rounded-lg shadow-lg bg-app-light-surface-dark border-app-light-border dark:bg-app-dark-surface-dark dark:border-app-dark-border max-h-48">
                                             {hours.map(hour => (
                                                 <button
                                                     key={hour}
@@ -263,11 +261,10 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                                                         handleTimeSelect(hour, selectedTime.minute);
                                                         setHourDropdownOpen(false);
                                                     }}
-                                                    className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                                                        hour === selectedTime.hour
-                                                            ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                                                            : 'text-gray-900 dark:text-gray-100'
-                                                    }`}
+                                                    className={`w-full px-3 py-2 text-left text-sm hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover transition-colors ${hour === selectedTime.hour
+                                                        ? 'bg-app-light-accent text-app-light-text-on-accent dark:bg-app-dark-accent dark:text-app-dark-text-on-accent'
+                                                        : 'text-app-light-text-primary dark:text-app-dark-text-primary'
+                                                        }`}
                                                 >
                                                     {String(hour).padStart(2, '0')}
                                                 </button>
@@ -278,7 +275,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
 
                                 {/* Minutes */}
                                 <div className="relative">
-                                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                    <label className="block mb-1 text-xs text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                         {t('datetime.minute', { defaultValue: 'Minute' })}
                                     </label>
                                     <button
@@ -287,7 +284,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                                             setMinuteDropdownOpen(!minuteDropdownOpen);
                                             setHourDropdownOpen(false);
                                         }}
-                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm text-left flex items-center justify-between"
+                                        className="flex items-center justify-between w-full px-3 py-2 text-sm text-left transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent hover:border-app-light-border-hover focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent dark:hover:border-app-dark-border-hover"
                                     >
                                         <span>{String(selectedTime.minute).padStart(2, '0')}</span>
                                         <svg
@@ -301,7 +298,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                                     </button>
 
                                     {minuteDropdownOpen && (
-                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-600 max-h-48 overflow-y-auto">
+                                        <div className="absolute z-50 w-full mt-1 overflow-y-auto border rounded-lg shadow-lg bg-app-light-surface-dark border-app-light-border dark:bg-app-dark-surface-dark dark:border-app-dark-border max-h-48">
                                             {minutes.map(minute => (
                                                 <button
                                                     key={minute}
@@ -310,11 +307,10 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                                                         handleTimeSelect(selectedTime.hour, minute);
                                                         setMinuteDropdownOpen(false);
                                                     }}
-                                                    className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                                                        minute === selectedTime.minute
-                                                            ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                                                            : 'text-gray-900 dark:text-gray-100'
-                                                    }`}
+                                                    className={`w-full px-3 py-2 text-left text-sm hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover transition-colors ${minute === selectedTime.minute
+                                                        ? 'bg-app-light-accent text-app-light-text-on-accent dark:bg-app-dark-accent dark:text-app-dark-text-on-accent'
+                                                        : 'text-app-light-text-primary dark:text-app-dark-text-primary'
+                                                        }`}
                                                 >
                                                     {String(minute).padStart(2, '0')}
                                                 </button>
@@ -327,18 +323,18 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50">
+                    <div className="flex items-center justify-end gap-3 p-4 border-t border-app-light-border dark:border-app-dark-border bg-app-light-surface-secondary dark:bg-app-dark-surface-secondary">
                         <button
                             type="button"
                             onClick={() => setIsOpen(false)}
-                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                            className="px-3 py-1.5 text-sm font-medium text-app-light-text-primary bg-app-light-surface border border-app-light-border rounded-lg hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent transition-colors"
                         >
                             {t('common.cancel')}
                         </button>
                         <button
                             type="button"
                             onClick={() => setIsOpen(false)}
-                            className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                            className="px-3 py-1.5 text-sm font-medium text-app-light-text-on-accent bg-app-light-accent border border-transparent rounded-lg hover:bg-app-light-accent-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 dark:bg-app-dark-accent dark:text-app-dark-text-on-accent dark:hover:bg-app-dark-accent-hover dark:focus:ring-app-dark-accent transition-colors"
                         >
                             {t('common.done')}
                         </button>

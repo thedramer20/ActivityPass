@@ -2,6 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+/* app-inspired CSS custom properties for dynamic theming */
+:root {
+  /* Light theme app colors */
+  --app-bg: #f7f7f7;
+  --app-surface: #ffffff;
+  --app-surface-secondary: #fafafa;
+  --app-surface-hover: #f0f0f0;
+  --app-surface-dark: #f5f5f5; /* Darker surface for depth */
+  --app-text-primary: #333333;
+  --app-text-secondary: #666666;
+  --app-text-secondary-dark: #555555; /* Darker secondary text */
+  --app-text-tertiary: #999999;
+  --app-border: #e5e5e5;
+  --app-border-light: #f0f0f0;
+  --app-border-dark: #d0d0d0; /* Darker border for emphasis */
+  --app-accent: #07c160;
+  --app-accent-hover: #06ad56;
+  --app-accent-light: #e8f5e8;
+  --app-success: #07c160;
+  --app-warning: #ff8c00;
+  --app-error: #ff4757;
+  --app-info: #007aff;
+  --app-shadow: rgba(0, 0, 0, 0.1);
+  --app-shadow-light: rgba(0, 0, 0, 0.05);
+}
+
+.dark {
+  /* Dark theme app colors */
+  --app-bg: #1a1a1a;
+  --app-surface: #2a2a2a;
+  --app-surface-secondary: #333333;
+  --app-surface-hover: #404040;
+  --app-surface-dark: #252525; /* Darker surface for depth */
+  --app-text-primary: #ffffff;
+  --app-text-secondary: #cccccc;
+  --app-text-secondary-dark: #aaaaaa; /* Darker secondary text */
+  --app-text-tertiary: #999999;
+  --app-border: #404040;
+  --app-border-light: #4a4a4a;
+  --app-border-dark: #353535; /* Darker border for emphasis */
+  --app-accent: #07c160;
+  --app-accent-hover: #06ad56;
+  --app-accent-light: #1a3320;
+  --app-success: #07c160;
+  --app-warning: #ff8c00;
+  --app-error: #ff4757;
+  --app-info: #007aff;
+  --app-shadow: rgba(0, 0, 0, 0.3);
+  --app-shadow-light: rgba(0, 0, 0, 0.2);
+}
+
 /* Hide scrollbars globally */
 * {
   -ms-overflow-style: none; /* IE and Edge */
@@ -14,28 +65,35 @@
 
 /* Base overrides */
 body {
-  @apply m-0 font-sans antialiased text-gray-800 bg-gray-50 dark:bg-gray-950 dark:text-gray-100;
+  @apply m-0 font-sans antialiased;
+  background-color: var(--app-bg);
+  color: var(--app-text-primary);
 }
+
 /* Slight global font size bump */
 html {
   font-size: 17px;
 }
+
+/* Code styling */
 code {
-  @apply font-mono text-sm bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded;
+  @apply font-mono text-sm px-1 py-0.5 rounded;
+  background-color: var(--app-surface-secondary);
+  color: var(--app-text-primary);
 }
 
 /* Custom date input styling for better cross-browser support */
 input[type="date"] {
-  @apply text-gray-900 dark:text-white;
+  color: var(--app-text-primary);
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
   @apply cursor-pointer opacity-60 hover:opacity-100;
-  filter: invert(0.5);
+  filter: invert(0.3); /* Darker for light mode */
 }
 
 .dark input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.8);
+  filter: invert(0.7); /* Lighter for dark mode */
 }
 
 input[type="date"]::-webkit-datetime-edit-fields-wrapper,
@@ -43,11 +101,11 @@ input[type="date"]::-webkit-datetime-edit-text,
 input[type="date"]::-webkit-datetime-edit-month-field,
 input[type="date"]::-webkit-datetime-edit-day-field,
 input[type="date"]::-webkit-datetime-edit-year-field {
-  @apply text-gray-900 dark:text-white;
+  color: var(--app-text-primary);
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator:hover {
-  background-color: rgba(59, 130, 246, 0.1);
+  background-color: var(--app-accent-light);
   border-radius: 4px;
 }
 
@@ -63,11 +121,226 @@ input[type="number"] {
   appearance: textfield;
 }
 
-/* Focus ring improvements for better visibility */
+/* Focus ring improvements for better visibility - subtle neutral color */
 .focus\:ring-blue-500:focus {
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.5);
 }
 
 .dark .focus\:ring-blue-400:focus {
-  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5);
+  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.7);
+}
+
+/* Remove default browser focus outlines and ensure consistent app focus styling */
+*:focus {
+  outline: none;
+}
+
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+}
+
+/* Prevent any focus flashing on input containers */
+div:focus,
+div:focus-within {
+  outline: none !important;
+}
+
+/* app-inspired component styles */
+.app-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px var(--app-shadow-light);
+  transition: all 0.2s ease;
+}
+
+.app-card:hover {
+  box-shadow: 0 4px 16px var(--app-shadow);
+  border-color: var(--app-border-light);
+}
+
+.app-button-primary {
+  background: var(--app-accent);
+  color: var(--app-text-on-accent);
+  border: 1px solid var(--app-accent);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.app-button-primary:hover {
+  background: var(--app-accent-hover);
+  border-color: var(--app-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(7, 193, 96, 0.3);
+}
+
+.app-button-secondary {
+  background: var(--app-surface);
+  color: var(--app-text-primary);
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.app-button-secondary:hover {
+  background: var(--app-surface-hover);
+  border-color: var(--app-border-hover);
+}
+
+.app-input {
+  background: var(--app-surface-dark);
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--app-text-primary);
+  transition: all 0.2s ease;
+}
+
+.app-input:focus {
+  border-color: #9ca3af;
+  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.1);
+  outline: none;
+}
+
+.app-input::placeholder {
+  color: var(--app-text-secondary-dark);
+}
+
+/* Status indicator styles */
+.app-status-success {
+  background: var(--app-success-light);
+  color: var(--app-success);
+  border: 1px solid rgba(7, 193, 96, 0.2);
+}
+
+.app-status-warning {
+  background: #fff4e6;
+  color: var(--app-warning);
+  border: 1px solid rgba(255, 140, 0, 0.2);
+}
+
+.dark .app-status-warning {
+  background: #332600;
+  border-color: rgba(255, 140, 0, 0.3);
+}
+
+.app-status-error {
+  background: #ffe6e6;
+  color: var(--app-error);
+  border: 1px solid rgba(255, 71, 87, 0.2);
+}
+
+.dark .app-status-error {
+  background: #331a1a;
+  border-color: rgba(255, 71, 87, 0.3);
+}
+
+.app-status-info {
+  background: #e6f3ff;
+  color: var(--app-info);
+  border: 1px solid rgba(0, 122, 255, 0.2);
+}
+
+.dark .app-status-info {
+  background: #001a33;
+  border-color: rgba(0, 122, 255, 0.3);
+}
+
+/* Navigation styles */
+.app-nav-item {
+  color: var(--app-text-secondary);
+  padding: 12px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.app-nav-item:hover {
+  background: var(--app-surface-hover);
+  color: var(--app-text-primary);
+}
+
+.app-nav-item.active {
+  background: var(--app-accent-light);
+  color: var(--app-accent);
+  font-weight: 600;
+}
+
+.dark .app-nav-item.active {
+  background: var(--app-accent-light);
+}
+
+.app-nav-item.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: var(--app-accent);
+  border-radius: 2px;
+}
+
+/* Modal styles */
+.app-modal-overlay {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.app-modal {
+  background: var(--app-surface-dark);
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px var(--app-shadow);
+}
+
+/* Remove browser autofill background color */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+  -webkit-text-fill-color: var(--app-text-primary) !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Animation utilities */
+@keyframes app-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes app-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.app-fade-in {
+  animation: app-fade-in 0.3s ease-out;
+}
+
+.app-slide-in {
+  animation: app-slide-in 0.3s ease-out;
 }

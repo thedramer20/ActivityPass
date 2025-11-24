@@ -28,6 +28,8 @@ const Navbar: React.FC = () => {
     const navigate = useNavigate();
     const loc = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarAnimating, setSidebarAnimating] = useState(false);
+    const [isOpening, setIsOpening] = useState(false);
     const navRef = useRef<HTMLElement>(null);
 
     const dashboardLabel = useMemo(() => {
@@ -82,9 +84,44 @@ const Navbar: React.FC = () => {
 
     const isActive = (href: string) => activeLink === normalizePath(href);
 
+    const handleSidebarToggle = () => {
+        if (sidebarOpen) {
+            // Start closing animation
+            setSidebarAnimating(true);
+            setIsOpening(false);
+            // Close after animation completes
+            setTimeout(() => {
+                setSidebarOpen(false);
+                setSidebarAnimating(false);
+            }, 300);
+        } else {
+            // Start opening animation - render with translate-x-full first
+            setSidebarOpen(true);
+            setSidebarAnimating(true);
+            setIsOpening(true);
+            // Then transition to translate-x-0
+            setTimeout(() => {
+                setSidebarAnimating(false);
+            }, 10); // Small delay to ensure initial render happens first
+        }
+    };
+
+    const handleSidebarClose = () => {
+        if (sidebarOpen) {
+            setSidebarAnimating(true);
+            setTimeout(() => {
+                setSidebarOpen(false);
+                setSidebarAnimating(false);
+            }, 300);
+        }
+    };
+
     const handleLogout = () => {
         logout();
-        navigate('/auth');
+        // Delay navigation to allow state update to complete
+        setTimeout(() => {
+            navigate('/auth');
+        }, 0);
     };
 
     useLayoutEffect(() => {
@@ -114,16 +151,23 @@ const Navbar: React.FC = () => {
     const showLoginCTA = !tokens && !isAuthPage;
 
     return (
-        <nav ref={navRef} className="sticky top-0 z-20 border-b border-gray-200 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl dark:border-gray-800">
+        <nav ref={navRef} className="sticky top-0 z-20 border-b border-app-light-border bg-app-light-surface/80 dark:bg-app-dark-surface/80 backdrop-blur-xl dark:border-app-dark-border">
             <div className="w-full px-4 sm:px-6">
                 <div className="flex items-center justify-between h-16 gap-4 lg:h-20">
-                    <Link to="/" className="text-xl font-semibold tracking-tight lg:text-2xl">{t('app.title')}</Link>
+                    <div className="flex items-center gap-4">
+                        <Link to="/" className="text-xl font-semibold tracking-tight lg:text-2xl">{t('app.title')}</Link>
+                        {me && (
+                            <p className="hidden text-xs text-app-light-text-secondary dark:text-app-dark-text-secondary sm:block">
+                                {t('nav.welcomeBack', { defaultValue: 'Welcome back', name: me.first_name || me.username })}
+                            </p>
+                        )}
+                    </div>
                     <div className="items-center hidden gap-6 sm:flex">
                         {navLinks.map(link => (
                             <Link
                                 key={link.to}
                                 to={link.to}
-                                className={`text-sm lg:text-base font-medium transition-colors ${isActive(link.to) ? 'text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}
+                                className={`text-sm lg:text-base font-medium transition-colors ${isActive(link.to) ? 'text-app-light-text-primary dark:text-app-dark-text-primary' : 'text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary'}`}
                             >
                                 {link.label}
                             </Link>
@@ -131,70 +175,153 @@ const Navbar: React.FC = () => {
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
                         {showLoginCTA && (
-                            <Link to="/auth" className="px-4 py-2 text-sm text-white bg-gray-900 rounded-md lg:text-base hover:bg-black">
+                            <Link to="/auth" className="px-4 py-2 text-sm text-white rounded-md bg-primary-500 lg:text-base hover:bg-primary-600">
                                 {t('nav.login')}
                             </Link>
                         )}
                         <button
                             type="button"
-                            onClick={() => setSidebarOpen(true)}
-                            className="inline-flex items-center justify-center p-2 text-gray-600 bg-white border border-gray-200 rounded-md dark:border-gray-700 dark:bg-gray-900 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                            onClick={handleSidebarToggle}
+                            className="inline-flex items-center justify-center p-2 transition-all duration-200 border rounded-lg text-app-light-textSecondary bg-app-light-surface border-app-light-border dark:border-app-dark-border dark:bg-app-dark-surface hover:text-app-light-text dark:text-app-dark-textSecondary dark:hover:text-app-dark-text hover:shadow-md"
                             aria-label={menuLabel}
                         >
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <svg
+                                className="w-5 h-5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
                                 <path d="M4 7h16M4 12h16M4 17h16" />
                             </svg>
                         </button>
                     </div>
                 </div>
             </div>
-            {sidebarOpen && typeof document !== 'undefined' && createPortal(
+            {(sidebarOpen || sidebarAnimating) && typeof document !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[80]">
-                    <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
-                    <div className="relative ml-auto h-full w-80 max-w-[85vw] bg-white dark:bg-gray-950 border-l border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col p-6 gap-6">
-                        <div className="flex items-center justify-between">
-                            <p className="text-base font-semibold text-gray-900 dark:text-white">{menuLabel}</p>
-                            <button
-                                type="button"
-                                onClick={() => setSidebarOpen(false)}
-                                className="p-2 text-gray-500 rounded-md hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                aria-label={t('common.close', { defaultValue: 'Close' })}
+                    {/* Enhanced backdrop with smooth animation */}
+                    <div
+                        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-all duration-300 ease-out ${isOpening ? (sidebarAnimating ? 'opacity-0' : 'opacity-100') : (sidebarAnimating ? 'opacity-100' : 'opacity-0')
+                            }`}
+                        onClick={handleSidebarClose}
+                        aria-hidden="true"
+                    />
+
+                    {/* Enhanced sidebar with smooth slide animation */}
+                    <div
+                        className={`relative ml-auto h-full w-80 max-w-[85vw] sm:w-96 bg-app-light-surface dark:bg-app-dark-surface border-l border-app-light-border dark:border-app-dark-border shadow-2xl flex flex-col p-6 gap-6 overflow-hidden transition-all duration-300 ease-out ${sidebarAnimating ? 'translate-x-full' : 'translate-x-0'
+                            }`}
+                    >
+                        {/* Content overlay */}
+                        <div className="relative z-10 flex flex-col h-full">
+                            {/* Animated header */}
+                            <div
+                                className="flex items-center justify-between transition-all duration-300 delay-100"
+                                style={{
+                                    animation: sidebarOpen ? 'slideDownFade 0.4s ease-out 0.1s both' : 'none'
+                                }}
                             >
-                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div className="flex flex-col gap-3">
-                            {navLinks.length ? navLinks.map(link => (
-                                <Link
-                                    key={link.to}
-                                    to={link.to}
-                                    onClick={() => setSidebarOpen(false)}
-                                    className={`rounded-lg px-4 py-2 text-sm font-medium ${isActive(link.to) ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'}`}
+                                <p className="text-base font-semibold text-app-light-text-primary dark:text-app-dark-text-primary">{menuLabel}</p>
+                                <button
+                                    type="button"
+                                    onClick={handleSidebarClose}
+                                    className="p-2 transition-all duration-200 rounded-md text-app-light-text-secondary hover:text-app-light-text-primary hover:bg-app-light-surface-hover dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary dark:hover:bg-app-dark-surface-hover"
+                                    aria-label={t('common.close', { defaultValue: 'Close' })}
                                 >
-                                    {link.label}
-                                </Link>
-                            )) : (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{t('nav.noLinks', { defaultValue: 'Sign in to access the pages.' })}</p>
-                            )}
-                        </div>
-                        <div className="flex flex-col gap-4 mt-auto">
-                            <div className="p-4 border border-gray-200 rounded-xl dark:border-gray-800" role="group" aria-label={preferencesLabel}>
-                                <div className="flex flex-wrap items-center justify-between w-full gap-4">
-                                    <LanguageSwitcher />
-                                    <ThemeToggle />
-                                </div>
-                            </div>
-                            {tokens ? (
-                                <button onClick={() => { handleLogout(); setSidebarOpen(false); }} className="w-full px-4 py-2 text-sm text-white bg-gray-900 rounded-md hover:bg-black">
-                                    {t('nav.logout')}
+                                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
                                 </button>
-                            ) : (
-                                <Link to="/auth" onClick={() => setSidebarOpen(false)} className="w-full px-4 py-2 text-sm text-center text-white bg-gray-900 rounded-md hover:bg-black">
-                                    {t('nav.login')}
-                                </Link>
-                            )}
+                            </div>
+
+                            {/* Animated navigation links with stagger */}
+                            <div className="flex flex-col gap-3 mt-8">
+                                {navLinks.length ? navLinks.map((link, index) => (
+                                    <Link
+                                        key={link.to}
+                                        to={link.to}
+                                        onClick={handleSidebarClose}
+                                        className={`rounded-lg px-4 py-3 text-sm font-medium transition-all duration-300 hover:shadow-md relative overflow-hidden ${isActive(link.to) ? 'bg-app-light-accent text-white dark:bg-app-dark-accent dark:text-white shadow-lg' : 'text-app-light-text hover:bg-app-light-surface-hover dark:text-app-dark-text dark:hover:bg-app-dark-surface-hover'}`}
+                                        style={{
+                                            animation: sidebarOpen ? `slideUpFade 0.4s ease-out ${0.2 + index * 0.1}s both` : 'none'
+                                        }}
+                                    >
+                                        <span className="flex items-center gap-3">
+                                            {/* Add icons for visual interest */}
+                                            <span className={`w-2 h-2 rounded-full transition-all duration-300 ${isActive(link.to) ? 'bg-white' : 'bg-app-light-accent dark:bg-app-dark-accent'}`}></span>
+                                            {link.label}
+                                        </span>
+                                    </Link>
+                                )) : (
+                                    <p
+                                        className="px-4 py-3 text-sm text-app-light-text-secondary dark:text-app-dark-text-secondary"
+                                        style={{
+                                            animation: sidebarOpen ? 'slideUpFade 0.4s ease-out 0.2s both' : 'none'
+                                        }}
+                                    >
+                                        {t('nav.noLinks', { defaultValue: 'Sign in to access the pages.' })}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Animated preferences section */}
+                            <div
+                                className="flex flex-col gap-4 mt-auto transition-all duration-300"
+                                style={{
+                                    animation: sidebarOpen ? 'slideUpFade 0.4s ease-out 0.6s both' : 'none'
+                                }}
+                            >
+                                <div className="p-4 transition-all duration-300 border border-app-light-border rounded-xl dark:border-app-dark-border bg-app-light-surface dark:bg-app-dark-surface hover:shadow-lg" role="group" aria-label={preferencesLabel}>
+                                    <div className="flex flex-wrap items-center justify-between w-full gap-4">
+                                        <div className="transition-all duration-200">
+                                            <LanguageSwitcher />
+                                        </div>
+                                        <div className="transition-all duration-200">
+                                            <ThemeToggle />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Animated action button */}
+                                {tokens ? (
+                                    <button
+                                        onClick={() => { handleLogout(); handleSidebarClose(); }}
+                                        className="w-full px-4 py-3 text-sm font-medium transition-all duration-300 border rounded-lg text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover hover:text-app-light-text-primary dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:hover:text-app-dark-text-primary hover:shadow-md"
+                                        style={{
+                                            animation: sidebarOpen ? 'slideUpFade 0.4s ease-out 0.7s both' : 'none'
+                                        }}
+                                    >
+                                        <span className="flex items-center justify-center gap-2">
+                                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                                <polyline points="16,17 21,12 16,7" />
+                                                <line x1="21" y1="12" x2="9" y2="12" />
+                                            </svg>
+                                            {t('nav.logout')}
+                                        </span>
+                                    </button>
+                                ) : (
+                                    <Link
+                                        to="/auth"
+                                        onClick={handleSidebarClose}
+                                        className="block w-full px-4 py-3 text-sm font-medium text-center transition-all duration-300 border rounded-lg text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover hover:text-app-light-text-primary dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:hover:text-app-dark-text-primary hover:shadow-md"
+                                        style={{
+                                            animation: sidebarOpen ? 'slideUpFade 0.4s ease-out 0.7s both' : 'none'
+                                        }}
+                                    >
+                                        <span className="flex items-center justify-center gap-2">
+                                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                                <circle cx="12" cy="7" r="4" />
+                                            </svg>
+                                            {t('nav.login')}
+                                        </span>
+                                    </Link>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>,
@@ -253,33 +380,34 @@ const ActivityList: React.FC = () => {
     return (
         <main className="px-4 mx-auto max-w-7xl">
             {notice && (
-                <div className={`mb-4 rounded-md border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-green-200 bg-green-50 text-green-800 dark:border-green-700 dark:bg-green-900/30 dark:text-green-100' : notice.type === 'error' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-100' : 'border-gray-200 bg-gray-50 text-gray-700 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-100'}`}>{notice.text}</div>
+                <div className={`mb-4 rounded-md border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-app-light-accent bg-app-light-accent/10 text-app-light-text-primary dark:border-app-dark-accent dark:bg-app-dark-accent/20 dark:text-app-dark-text-primary' : notice.type === 'error' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-100' : 'border-app-light-border bg-app-light-surface-secondary text-app-light-text-primary dark:border-app-dark-border dark:bg-app-dark-surface-secondary dark:text-app-dark-text-primary'}`}>{notice.text}</div>
             )}
-            {loading && <p className="py-6 text-gray-700">{t('activities.loading')}</p>}
+            {loading && <p className="py-6 text-app-light-text-primary">{t('activities.loading')}</p>}
             {error && <p className="py-6 text-red-500">{t('error.generic')}: {error}</p>}
             {!loading && !error && (
                 <div className="grid grid-cols-1 gap-4 py-4 sm:grid-cols-2 lg:grid-cols-3">
                     {activities.map(a => (
-                        <article key={a.id} className="flex flex-col p-5 bg-white border border-gray-200 shadow-sm rounded-xl dark:border-gray-800 dark:bg-gray-900">
+                        <article key={a.id} className="flex flex-col p-5 border shadow-sm bg-app-light-surface border-app-light-border rounded-xl dark:border-app-dark-border dark:bg-app-dark-surface">
                             <h3 className="mb-2 text-base font-semibold lg:text-lg">{a.title}</h3>
-                            <p className="flex-1 text-sm text-gray-600 lg:text-base dark:text-gray-300">{a.description || '—'}</p>
-                            <div className="mt-3 text-xs text-gray-500 lg:text-sm dark:text-gray-400">
+                            <p className="flex-1 text-sm text-app-light-text-secondary lg:text-base dark:text-app-dark-text-secondary">{a.description || '—'}</p>
+                            <div className="mt-3 text-xs text-app-light-text-secondary lg:text-sm dark:text-app-dark-text-secondary">
                                 <div>Starts: {fmt.format(new Date(a.start_datetime))}</div>
                                 <div>Ends: {fmt.format(new Date(a.end_datetime))}</div>
                             </div>
-                            <button onClick={() => apply(a.id)} className="mt-4 px-4 py-2.5 rounded-md bg-gray-900 text-white text-sm lg:text-base hover:bg-black">{t('activity.apply')}</button>
+                            <button onClick={() => apply(a.id)} className="mt-4 px-4 py-2.5 rounded-md bg-primary-500 text-white text-sm lg:text-base hover:bg-primary-600">{t('activity.apply')}</button>
                         </article>
                     ))}
                 </div>
             )}
             {!loading && !error && activities.length === 0 && (
-                <p className="py-6 text-gray-500 dark:text-gray-400">{t('activities.none')}</p>
+                <p className="py-6 text-app-light-text-secondary dark:text-app-dark-text-secondary">{t('activities.none')}</p>
             )}
         </main>
     );
 };
 
 const RoleAwareHome: React.FC = () => {
+    const { t } = useTranslation();
     const { me, meLoading } = useAuth();
     const navigate = useNavigate();
     useEffect(() => {
@@ -294,7 +422,7 @@ const RoleAwareHome: React.FC = () => {
     if (meLoading || !me) {
         return (
             <main className="flex items-center justify-center flex-1">
-                <p className="text-sm text-gray-600 dark:text-gray-300">{t('app.loadingDashboard')}</p>
+                <p className="text-sm text-app-light-text-secondary dark:text-app-dark-text-secondary">{t('app.loadingDashboard')}</p>
             </main>
         );
     }
@@ -328,7 +456,7 @@ const Footer: React.FC = () => {
     }, []);
 
     return (
-        <footer ref={footerRef} className="px-6 py-10 mx-auto mt-auto text-xs text-gray-500 max-w-7xl">© {new Date().getFullYear()} {t('app.title')}</footer>
+        <footer ref={footerRef} className="px-6 py-10 mx-auto mt-auto text-xs text-app-light-text-secondary bg-app-light-input-bg dark:bg-app-dark-input-bg dark:text-app-dark-text-secondary max-w-7xl">© {new Date().getFullYear()} {t('app.title')}</footer>
     );
 };
 
@@ -350,7 +478,7 @@ const App: React.FC = () => {
         }
     }, [i18n.language, t]);
     return (
-        <div className="flex flex-col min-h-screen text-gray-900 bg-gray-50 dark:bg-gray-950 dark:text-gray-100">
+        <div className="flex flex-col min-h-screen text-app-light-text-primary bg-app-light-input-bg dark:bg-app-dark-input-bg dark:text-app-dark-text-primary">
             <Navbar />
             <Routes>
                 <Route path="/auth" element={<AuthPage />} />
@@ -375,7 +503,7 @@ const AdminRoute: React.FC<React.PropsWithChildren> = ({ children }) => {
     if (meLoading) {
         return (
             <main className="flex items-center justify-center flex-1 py-10">
-                <p className="text-sm text-gray-600 dark:text-gray-400">{t('app.confirmingAdminAccess')}</p>
+                <p className="text-sm text-app-light-text-secondary dark:text-app-dark-text-secondary">{t('app.confirmingAdminAccess')}</p>
             </main>
         );
     }
@@ -390,7 +518,7 @@ const StaffRoute: React.FC<React.PropsWithChildren> = ({ children }) => {
     if (meLoading) {
         return (
             <main className="flex items-center justify-center flex-1 py-10">
-                <p className="text-sm text-gray-600 dark:text-gray-400">{t('app.confirmingStaffAccess')}</p>
+                <p className="text-sm text-app-light-text-secondary dark:text-app-dark-text-secondary">{t('app.confirmingStaffAccess')}</p>
             </main>
         );
     }

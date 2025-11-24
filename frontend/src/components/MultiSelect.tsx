@@ -74,13 +74,13 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm text-left flex items-center justify-between min-h-[2.5rem]"
+                className="w-full px-3 py-2 bg-app-light-input-bg border border-app-light-border rounded-lg focus:ring-1 focus:ring-app-light-accent focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent transition-all duration-200 text-sm text-left flex items-center justify-between min-h-[2.5rem] hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
             >
-                <span className={selectedLabels.length > 0 ? '' : 'text-gray-500 dark:text-gray-400'}>
+                <span className={selectedLabels.length > 0 ? 'text-app-light-text-primary dark:text-app-dark-text-primary' : 'text-app-light-text-secondary dark:text-app-dark-text-secondary'}>
                     {displayText}
                 </span>
                 <svg
-                    className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 text-app-light-text-secondary transition-transform dark:text-app-dark-text-secondary ${isOpen ? 'rotate-180' : ''}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -90,23 +90,23 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             </button>
 
             {isOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-600 max-h-60 overflow-hidden">
+                <div className="absolute z-50 w-full mt-1 overflow-hidden border rounded-lg shadow-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border max-h-60">
                     {showSearch && options.length > 5 && (
-                        <div className="p-2 border-b border-gray-200 dark:border-gray-600">
+                        <div className="p-2 border-b border-app-light-border dark:border-app-dark-border">
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder={t('common.search', { defaultValue: 'Search...' })}
-                                className="w-full px-2 py-1 text-sm bg-gray-50 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-surface border-app-light-border focus:ring-2 focus:ring-app-light-accent focus:border-app-light-accent dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                             />
                         </div>
                     )}
-                    <div className="max-h-48 overflow-y-auto">
+                    <div className="overflow-y-auto max-h-48">
                         <button
                             type="button"
                             onClick={handleSelectAll}
-                            className="w-full px-3 py-2 text-left text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-blue-600 dark:text-blue-400 border-b border-gray-200 dark:border-gray-600"
+                            className="w-full px-3 py-2 text-sm font-medium text-left transition-colors border-b hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover text-app-light-accent dark:text-app-dark-accent border-app-light-border dark:border-app-dark-border"
                         >
                             {value.length === options.length
                                 ? t('common.deselectAll', { defaultValue: 'Deselect All' })
@@ -118,12 +118,12 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                                 key={option.value}
                                 type="button"
                                 onClick={() => handleSelect(option.value)}
-                                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center ${value.includes(option.value)
-                                        ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                                        : 'text-gray-900 dark:text-gray-100'
+                                className={`w-full px-3 py-2 text-left text-sm hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover transition-colors flex items-center ${value.includes(option.value)
+                                    ? 'bg-app-light-accent-light text-app-light-accent dark:bg-app-dark-accent-light dark:text-app-dark-accent'
+                                    : 'text-app-light-text-primary dark:text-app-dark-text-primary'
                                     }`}
                             >
-                                <span className="mr-2">
+                                <span className="mr-2 text-app-light-accent dark:text-app-dark-accent">
                                     {value.includes(option.value) ? '✓' : '○'}
                                 </span>
                                 {option.label}

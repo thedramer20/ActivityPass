@@ -47,22 +47,21 @@ const AdminDashboardPage: React.FC = () => {
     ];
 
     return (
-        <main className="flex-1 px-4 sm:px-6 lg:px-10 py-8">
+        <main className="flex-1 px-4 py-8 sm:px-6 lg:px-10">
             <div className="flex flex-col gap-6">
-                {me?.username && <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">{me.username}</p>}
                 {notice && (
-                    <div className={`rounded-md border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-green-200 bg-green-50 text-green-800 dark:border-green-700 dark:bg-green-900/40 dark:text-green-100' : notice.type === 'error' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-900/40 dark:text-red-100' : 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-700 dark:bg-blue-900/40 dark:text-blue-100'}`}>{notice.text}</div>
+                    <div className={`rounded-md border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-app-light-accent bg-app-light-accent/10 text-app-light-text-primary dark:border-app-dark-accent dark:bg-app-dark-accent/20 dark:text-app-dark-text-primary' : notice.type === 'error' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-100' : 'border-app-light-border bg-app-light-surface-secondary text-app-light-text-primary dark:border-app-dark-border dark:bg-app-dark-surface-secondary dark:text-app-dark-text-primary'}`}>{notice.text}</div>
                 )}
-                <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     {infoCards.map(card => (
                         card.to ? (
-                            <Link key={card.label} to={card.to} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm transition hover:border-gray-400 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{card.label}</p>
+                            <Link key={card.label} to={card.to} className="p-5 transition border shadow-sm rounded-xl border-app-light-border dark:border-app-dark-border bg-app-light-surface dark:bg-app-dark-surface hover:border-app-light-border dark:hover:border-app-dark-border focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-app-light-accent dark:focus:ring-app-dark-accent">
+                                <p className="text-sm text-app-light-text-tertiary dark:text-app-dark-text-tertiary">{card.label}</p>
                                 <p className="mt-2 text-2xl font-semibold">{card.value}</p>
                             </Link>
                         ) : (
-                            <article key={card.label} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm">
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{card.label}</p>
+                            <article key={card.label} className="p-5 border shadow-sm rounded-xl border-app-light-border dark:border-app-dark-border bg-app-light-surface dark:bg-app-dark-surface">
+                                <p className="text-sm text-app-light-text-tertiary dark:text-app-dark-text-tertiary">{card.label}</p>
                                 <p className="mt-2 text-2xl font-semibold">{card.value}</p>
                             </article>
                         )

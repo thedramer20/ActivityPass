@@ -279,14 +279,14 @@ const AdminStudentsPage: React.FC = () => {
     };
 
     return (
-        <main className="flex-1 px-4 sm:px-6 lg:px-10 py-8">
+        <main className="flex-1 px-4 py-8 sm:px-6 lg:px-10">
             <div className="flex flex-col gap-6">
                 <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h1 className="text-2xl font-semibold">{t('admin.manageStudents')}</h1>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
-                        <button type="button" onClick={openModal} className="px-4 py-2 rounded-md bg-gray-900 text-white text-sm">
+                        <button type="button" onClick={openModal} className="px-4 py-2 text-sm text-white transition-colors rounded-md bg-app-light-accent hover:bg-app-light-accent-hover dark:bg-app-dark-accent dark:hover:bg-app-dark-accent-hover">
                             {t('admin.addStudent')}
                         </button>
                         <button
@@ -295,8 +295,8 @@ const AdminStudentsPage: React.FC = () => {
                             disabled={securityLoading || togglingSecurity || !securityPrefs}
                             aria-pressed={securityPrefs?.force_students_change_default}
                             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${securityPrefs?.force_students_change_default
-                                ? 'bg-gray-900 text-white border border-gray-900'
-                                : 'border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100'} disabled:opacity-60`}
+                                ? 'bg-app-light-accent text-app-light-text-primary border border-app-light-accent'
+                                : 'border border-app-light-border dark:border-app-dark-border text-app-light-text-primary dark:text-app-dark-text-primary'} disabled:opacity-60`}
                         >
                             {securityPrefs?.force_students_change_default ? t('admin.promptStudentsToggleOff') : t('admin.promptStudentsToggleOn')}
                         </button>
@@ -304,24 +304,24 @@ const AdminStudentsPage: React.FC = () => {
                 </header>
 
                 {notice && (
-                    <div className={`rounded-md border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-green-200 bg-green-50 text-green-800 dark:border-green-700 dark:bg-green-900/30 dark:text-green-100' : notice.type === 'error' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-100' : 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-100'}`}>
+                    <div className={`rounded-md border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-app-light-accent bg-app-light-accent/10 text-app-light-text-primary dark:border-app-dark-accent dark:bg-app-dark-accent/20 dark:text-app-dark-text-primary' : notice.type === 'error' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-100' : 'border-app-light-border bg-app-light-surface-secondary text-app-light-text-primary dark:border-app-dark-border dark:bg-app-dark-surface-secondary dark:text-app-dark-text-primary'}`}>
                         {notice.text}
                     </div>
                 )}
 
-                <section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm">
+                <section className="p-5 border shadow-sm rounded-xl border-app-light-border dark:border-app-dark-border bg-app-light-surface dark:bg-app-dark-surface">
                     <div className="flex flex-col gap-3 sm:flex-row">
                         <input
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder={t('admin.searchStudents') || ''}
-                            className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                            className="flex-1 px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                         />
                     </div>
                     <div className="mt-6 overflow-x-auto">
-                        <table className="w-full text-left text-sm">
+                        <table className="w-full text-sm text-left">
                             <thead>
-                                <tr className="text-gray-500 dark:text-gray-400">
+                                <tr className="text-app-light-textSecondary dark:text-app-dark-textSecondary">
                                     <th className="px-4 py-2 whitespace-nowrap">{t('admin.table.studentId')}</th>
                                     <th className="px-4 py-2 whitespace-nowrap">{t('admin.table.name')}</th>
                                     <th className="px-4 py-2 whitespace-nowrap">{t('admin.table.email')}</th>
@@ -335,11 +335,11 @@ const AdminStudentsPage: React.FC = () => {
                             <tbody>
                                 {!students.length && !loading && (
                                     <tr>
-                                        <td colSpan={8} className="py-6 text-center text-gray-500">{t('admin.noStudents', { defaultValue: 'No students found.' })}</td>
+                                        <td colSpan={8} className="py-6 text-center text-app-light-textSecondary dark:text-app-dark-textSecondary">{t('admin.noStudents', { defaultValue: 'No students found.' })}</td>
                                     </tr>
                                 )}
                                 {students.map(student => (
-                                    <tr key={student.id} className="border-t border-gray-100 dark:border-gray-800">
+                                    <tr key={student.id} className="border-t border-app-light-border dark:border-app-dark-border">
                                         <td className="px-4 py-2 font-mono text-xs whitespace-nowrap">{student.student_profile?.student_id || '—'}</td>
                                         <td className="px-4 py-2 whitespace-nowrap">{student.first_name || '—'}</td>
                                         <td className="px-4 py-2 whitespace-nowrap">{student.email || '—'}</td>
@@ -348,7 +348,7 @@ const AdminStudentsPage: React.FC = () => {
                                         <td className="px-4 py-2">{student.student_profile?.class_name || '—'}</td>
                                         <td className="px-4 py-2 whitespace-nowrap">{student.student_profile?.year ?? '—'}</td>
                                         <td className="px-4 py-2">
-                                            <button type="button" onClick={() => openViewModal(student)} className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                            <button type="button" onClick={() => openViewModal(student)} className="text-sm font-medium text-app-light-text dark:text-app-dark-text">
                                                 {t('common.view')}
                                             </button>
                                         </td>
@@ -362,15 +362,12 @@ const AdminStudentsPage: React.FC = () => {
 
             {modalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="w-full max-w-2xl bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700 mt-8 mb-8">
+                    <div className="w-full max-w-2xl mt-8 mb-8 border shadow-2xl bg-app-light-surface border-app-light-border rounded-2xl dark:bg-app-dark-surface dark:border-app-dark-border">
                         <div className="flex items-center justify-between p-4 pb-3">
                             <div>
-                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                                    {t('admin.quickCreate', { defaultValue: 'Quick create' })}
-                                </p>
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('admin.addStudent', { defaultValue: 'Add student' })}</h2>
+                                <h2 className="text-lg font-semibold text-app-light-text-primary dark:text-app-dark-text-primary">{t('admin.addStudent', { defaultValue: 'Add student' })}</h2>
                             </div>
-                            <button type="button" onClick={() => setModalOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
+                            <button type="button" onClick={() => setModalOpen(false)} className="p-2 transition-colors rounded-lg text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover" aria-label={t('common.close')}>
                                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -381,25 +378,25 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Basic Info Row */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.table.studentId')}
                                         </label>
                                         <input
                                             value={form.student_id}
                                             onChange={e => setForm(prev => ({ ...prev, student_id: e.target.value }))}
                                             required
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.table.studentId')}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('profile.name')}
                                         </label>
                                         <input
                                             value={form.full_name}
                                             onChange={e => setForm(prev => ({ ...prev, full_name: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                             placeholder={t('profile.name')}
                                         />
                                     </div>
@@ -408,25 +405,25 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Contact Info */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.table.email')}
                                         </label>
                                         <input
                                             value={form.email}
                                             onChange={e => setForm(prev => ({ ...prev, email: e.target.value }))}
                                             type="email"
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.table.email')}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.phone')}
                                         </label>
                                         <input
                                             value={form.phone}
                                             onChange={e => setForm(prev => ({ ...prev, phone: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.student.phone')}
                                         />
                                     </div>
@@ -435,24 +432,24 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Academic Info */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.major')}
                                         </label>
                                         <input
                                             value={form.major}
                                             onChange={e => setForm(prev => ({ ...prev, major: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.student.major')}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.college')}
                                         </label>
                                         <input
                                             value={form.college}
                                             onChange={e => setForm(prev => ({ ...prev, college: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.student.college')}
                                         />
                                     </div>
@@ -461,18 +458,18 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Class and Year */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.class_name')}
                                         </label>
                                         <input
                                             value={form.class_name}
                                             onChange={e => setForm(prev => ({ ...prev, class_name: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.student.class_name')}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.year')}
                                         </label>
                                         <div className="relative">
@@ -480,14 +477,14 @@ const AdminStudentsPage: React.FC = () => {
                                                 value={form.year}
                                                 onChange={e => setForm(prev => ({ ...prev, year: e.target.value }))}
                                                 type="number"
-                                                className="w-full px-3 py-2 pr-16 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                                className="w-full px-3 py-2 pr-16 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                                 placeholder={t('admin.student.year')}
                                             />
                                             <div className="absolute inset-y-0 right-0 flex flex-col">
                                                 <button
                                                     type="button"
                                                     onClick={() => setForm(prev => ({ ...prev, year: String((Number(prev.year) || new Date().getFullYear()) + 1) }))}
-                                                    className="flex-1 px-2 text-gray-400 dark:text-gray-500 border-l border-gray-300 dark:border-gray-600"
+                                                    className="flex-1 px-2 border-l text-app-light-text-secondary dark:text-app-dark-text-secondary border-app-light-border dark:border-app-dark-border"
                                                     aria-label="Increase year"
                                                 >
                                                     <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -497,7 +494,7 @@ const AdminStudentsPage: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => setForm(prev => ({ ...prev, year: String(Math.max(1900, (Number(prev.year) || new Date().getFullYear()) - 1)) }))}
-                                                    className="flex-1 px-2 text-gray-400 dark:text-gray-500 border-l border-t border-gray-300 dark:border-gray-600"
+                                                    className="flex-1 px-2 border-t border-l text-app-light-text-secondary dark:text-app-dark-text-secondary border-app-light-border dark:border-app-dark-border"
                                                     aria-label="Decrease year"
                                                 >
                                                     <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -512,7 +509,7 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Gender and Chinese Level */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.gender')}
                                         </label>
                                         <CustomSelect
@@ -526,7 +523,7 @@ const AdminStudentsPage: React.FC = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.chinese_level')}
                                         </label>
                                         <CustomSelect
@@ -547,18 +544,18 @@ const AdminStudentsPage: React.FC = () => {
                                 </div>
 
                                 {/* Form Actions */}
-                                <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                <div className="flex flex-col-reverse pt-3 space-y-2 space-y-reverse border-t sm:flex-row sm:justify-end sm:space-x-3 sm:space-y-0 border-app-light-border dark:border-app-dark-border">
                                     <button
                                         type="button"
                                         onClick={() => setModalOpen(false)}
-                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                        className="w-full px-4 py-2 text-sm font-medium transition-colors border rounded-lg sm:w-auto text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent"
                                     >
                                         {t('common.cancel')}
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={creating}
-                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                        className="w-full px-4 py-2 text-sm font-medium text-white transition-colors border border-transparent rounded-lg sm:w-auto bg-app-light-accent hover:bg-app-light-accent-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-app-dark-accent dark:hover:bg-app-dark-accent-hover dark:focus:ring-app-dark-accent"
                                     >
                                         {creating ? t('profile.saving') : t('admin.createStudent', { defaultValue: 'Create student' })}
                                     </button>
@@ -571,15 +568,15 @@ const AdminStudentsPage: React.FC = () => {
 
             {editModalOpen && editingStudent && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="w-full max-w-3xl bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700 mt-8 mb-8">
+                    <div className="w-full max-w-3xl mt-8 mb-8 border shadow-2xl bg-app-light-surface border-app-light-border rounded-2xl dark:bg-app-dark-surface dark:border-app-dark-border">
                         <div className="flex items-center justify-between p-4 pb-3">
                             <div>
-                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                                <p className="text-xs tracking-wider uppercase text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                     {t('admin.editStudent')}
                                 </p>
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{editingStudent.first_name || editingStudent.username}</h2>
+                                <h2 className="text-lg font-semibold text-app-light-text-primary dark:text-app-dark-text-primary">{editingStudent.first_name || editingStudent.username}</h2>
                             </div>
-                            <button type="button" onClick={closeEditModal} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
+                            <button type="button" onClick={closeEditModal} className="p-2 transition-colors rounded-lg text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover" aria-label={t('common.close')}>
                                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -590,23 +587,23 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Basic Info Row */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.table.studentId')}
                                         </label>
                                         <input
                                             value={editForm.student_id}
                                             disabled
-                                            className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-colors border rounded-lg bg-app-light-surface-secondary border-app-light-border dark:bg-app-dark-surface-secondary dark:border-app-dark-border dark:text-app-dark-text-secondary"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('profile.name')}
                                         </label>
                                         <input
                                             value={editForm.full_name}
                                             onChange={e => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                             placeholder={t('profile.name')}
                                         />
                                     </div>
@@ -615,25 +612,25 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Contact Info */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.table.email')}
                                         </label>
                                         <input
                                             value={editForm.email}
                                             onChange={e => setEditForm(prev => ({ ...prev, email: e.target.value }))}
                                             type="email"
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.table.email')}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.phone')}
                                         </label>
                                         <input
                                             value={editForm.phone}
                                             onChange={e => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.student.phone')}
                                         />
                                     </div>
@@ -642,24 +639,24 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Academic Info */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.major')}
                                         </label>
                                         <input
                                             value={editForm.major}
                                             onChange={e => setEditForm(prev => ({ ...prev, major: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.student.major')}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.college')}
                                         </label>
                                         <input
                                             value={editForm.college}
                                             onChange={e => setEditForm(prev => ({ ...prev, college: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.student.college')}
                                         />
                                     </div>
@@ -668,18 +665,18 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Class and Year */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.class_name')}
                                         </label>
                                         <input
                                             value={editForm.class_name}
                                             onChange={e => setEditForm(prev => ({ ...prev, class_name: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                            className="w-full px-3 py-2 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                             placeholder={t('admin.student.class_name')}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.year')}
                                         </label>
                                         <div className="relative">
@@ -687,14 +684,14 @@ const AdminStudentsPage: React.FC = () => {
                                                 value={editForm.year}
                                                 onChange={e => setEditForm(prev => ({ ...prev, year: e.target.value }))}
                                                 type="number"
-                                                className="w-full px-3 py-2 pr-16 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm"
+                                                className="w-full px-3 py-2 pr-16 text-sm transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-gray-400 dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-gray-500 hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
                                                 placeholder={t('admin.student.year')}
                                             />
                                             <div className="absolute inset-y-0 right-0 flex flex-col">
                                                 <button
                                                     type="button"
                                                     onClick={() => setEditForm(prev => ({ ...prev, year: String((Number(prev.year) || new Date().getFullYear()) + 1) }))}
-                                                    className="flex-1 px-2 text-gray-400 dark:text-gray-500 border-l border-gray-300 dark:border-gray-600"
+                                                    className="flex-1 px-2 border-l text-app-light-text-secondary dark:text-app-dark-text-secondary border-app-light-border dark:border-app-dark-border"
                                                     aria-label="Increase year"
                                                 >
                                                     <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -704,7 +701,7 @@ const AdminStudentsPage: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => setEditForm(prev => ({ ...prev, year: String(Math.max(1900, (Number(prev.year) || new Date().getFullYear()) - 1)) }))}
-                                                    className="flex-1 px-2 text-gray-400 dark:text-gray-500 border-l border-t border-gray-300 dark:border-gray-600"
+                                                    className="flex-1 px-2 border-t border-l text-app-light-text-secondary dark:text-app-dark-text-secondary border-app-light-border dark:border-app-dark-border"
                                                     aria-label="Decrease year"
                                                 >
                                                     <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -719,7 +716,7 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Gender and Chinese Level */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.gender')}
                                         </label>
                                         <CustomSelect
@@ -733,7 +730,7 @@ const AdminStudentsPage: React.FC = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.chinese_level')}
                                         </label>
                                         <CustomSelect
@@ -754,27 +751,27 @@ const AdminStudentsPage: React.FC = () => {
                                 </div>
 
                                 {/* Form Actions */}
-                                <div className="flex flex-col gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                <div className="flex flex-col gap-3 pt-3 border-t border-app-light-border dark:border-app-dark-border">
                                     <button
                                         type="button"
                                         onClick={() => resetPassword(editingStudent)}
-                                        className="self-start px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors disabled:opacity-50"
+                                        className="self-start px-4 py-2 text-sm font-medium transition-colors border rounded-lg text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent"
                                         disabled={resettingUserId === editingStudent.id}
                                     >
                                         {resettingUserId === editingStudent.id ? t('profile.saving') : t('admin.resetPassword')}
                                     </button>
-                                    <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0">
+                                    <div className="flex flex-col-reverse space-y-2 space-y-reverse sm:flex-row sm:justify-end sm:space-x-3 sm:space-y-0">
                                         <button
                                             type="button"
                                             onClick={closeEditModal}
-                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                            className="w-full px-4 py-2 text-sm font-medium transition-colors border rounded-lg sm:w-auto text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent"
                                         >
                                             {t('common.cancel')}
                                         </button>
                                         <button
                                             type="submit"
                                             disabled={updating}
-                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                            className="w-full px-4 py-2 text-sm font-medium text-white transition-colors border border-transparent rounded-lg sm:w-auto bg-app-light-accent hover:bg-app-light-accent-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-app-dark-accent dark:hover:bg-app-dark-accent-hover dark:focus:ring-app-dark-accent"
                                         >
                                             {updating ? t('profile.saving') : t('admin.saveChanges')}
                                         </button>
@@ -788,15 +785,15 @@ const AdminStudentsPage: React.FC = () => {
 
             {viewModalOpen && viewingStudent && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="w-full max-w-2xl bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700">
+                    <div className="w-full max-w-2xl border shadow-2xl bg-app-light-surface border-app-light-border rounded-2xl dark:bg-app-dark-surface dark:border-app-dark-border">
                         <div className="flex items-center justify-between p-4 pb-3">
                             <div>
-                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                                <p className="text-xs tracking-wider uppercase text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                     {t('admin.viewStudent', { defaultValue: 'View Student' })}
                                 </p>
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{viewingStudent.first_name || viewingStudent.username}</h2>
+                                <h2 className="text-lg font-semibold text-app-light-text-primary dark:text-app-dark-text-primary">{viewingStudent.first_name || viewingStudent.username}</h2>
                             </div>
-                            <button type="button" onClick={closeViewModal} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
+                            <button type="button" onClick={closeViewModal} className="p-2 transition-colors rounded-lg text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover" aria-label={t('common.close')}>
                                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -807,18 +804,18 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Basic Info Row */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.table.studentId')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {viewingStudent.student_profile?.student_id || '—'}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('profile.name')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {viewingStudent.first_name || '—'}
                                         </div>
                                     </div>
@@ -827,18 +824,18 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Contact Info */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.table.email')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {viewingStudent.email || '—'}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.phone')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {viewingStudent.student_profile?.phone || '—'}
                                         </div>
                                     </div>
@@ -847,18 +844,18 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Academic Info */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.major')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {viewingStudent.student_profile?.major || '—'}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.college')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {viewingStudent.student_profile?.college || '—'}
                                         </div>
                                     </div>
@@ -867,18 +864,18 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Class and Year */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.class_name')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {viewingStudent.student_profile?.class_name || '—'}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.year')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {viewingStudent.student_profile?.year ?? '—'}
                                         </div>
                                     </div>
@@ -887,38 +884,38 @@ const AdminStudentsPage: React.FC = () => {
                                 {/* Gender and Chinese Level */}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.gender')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {viewingStudent.student_profile?.gender || '—'}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                                             {t('admin.student.chinese_level')}
                                         </label>
-                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
                                             {viewingStudent.student_profile?.chinese_level || '—'}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Form Actions */}
-                                <div className="flex flex-col gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                <div className="flex flex-col gap-3 pt-3 border-t border-app-light-border dark:border-app-dark-border">
                                     <button
                                         type="button"
                                         onClick={() => resetPassword(viewingStudent)}
                                         disabled={resettingUserId === viewingStudent.id}
-                                        className="self-start px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                        className="self-start px-4 py-2 text-sm font-medium transition-colors border rounded-lg text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent"
                                     >
                                         {resettingUserId === viewingStudent.id ? t('profile.saving') : t('admin.resetPassword')}
                                     </button>
-                                    <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0">
+                                    <div className="flex flex-col-reverse space-y-2 space-y-reverse sm:flex-row sm:justify-end sm:space-x-3 sm:space-y-0">
                                         <button
                                             type="button"
                                             onClick={closeViewModal}
-                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                            className="w-full px-4 py-2 text-sm font-medium transition-colors border rounded-lg sm:w-auto text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent"
                                         >
                                             {t('common.close')}
                                         </button>
@@ -928,7 +925,7 @@ const AdminStudentsPage: React.FC = () => {
                                                 closeViewModal();
                                                 openEditModal(viewingStudent);
                                             }}
-                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                            className="w-full px-4 py-2 text-sm font-medium text-white transition-colors border border-transparent rounded-lg sm:w-auto bg-app-light-accent hover:bg-app-light-accent-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 dark:bg-app-dark-accent dark:hover:bg-app-dark-accent-hover dark:focus:ring-app-dark-accent"
                                         >
                                             {t('common.edit')}
                                         </button>

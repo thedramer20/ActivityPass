@@ -32,22 +32,22 @@ const CompleteProfilePage: React.FC = () => {
 
     return (
         <main className="flex-1">
-            <div className="pt-14 pb-8 flex flex-col items-center text-center px-4">
+            <div className="flex flex-col items-center px-4 pb-8 text-center pt-14">
                 <h1 className="text-3xl font-bold">{t('profile.completeTitle')}</h1>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{t('profile.completeSubtitle')}</p>
+                <p className="mt-2 text-sm text-app-light-text-secondary dark:text-app-dark-text-secondary">{t('profile.completeSubtitle')}</p>
             </div>
             <div className="flex items-center justify-center px-4 pb-16">
-                <section className="w-full max-w-md rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-7 shadow-sm">
+                <section className="w-full max-w-md border shadow-sm rounded-xl border-app-light-border dark:border-app-dark-border bg-app-light-surface dark:bg-app-dark-surface p-7">
                     <form onSubmit={save} className="space-y-6">
                         <div>
-                            <label className="text-sm text-gray-700 dark:text-gray-300">{t('profile.name')}</label>
-                            <input value={name} onChange={e => setName(e.target.value)} className="mt-1 w-full border border-gray-300 dark:border-gray-700 rounded-md px-4 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+                            <label className="text-sm text-app-light-text-primary dark:text-app-dark-text-primary">{t('profile.name')}</label>
+                            <input value={name} onChange={e => setName(e.target.value)} className="w-full px-4 py-3 mt-1 border rounded-md border-app-light-border dark:border-app-dark-border bg-app-light-input-bg dark:bg-app-dark-input-bg text-app-light-text-primary dark:text-app-dark-text-primary" />
                         </div>
                         <div>
-                            <label className="text-sm text-gray-700 dark:text-gray-300">{t('profile.phone')}</label>
-                            <input value={phone} onChange={e => setPhone(e.target.value)} className="mt-1 w-full border border-gray-300 dark:border-gray-700 rounded-md px-4 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+                            <label className="text-sm text-app-light-text-primary dark:text-app-dark-text-primary">{t('profile.phone')}</label>
+                            <input value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 mt-1 border rounded-md border-app-light-border dark:border-app-dark-border bg-app-light-input-bg dark:bg-app-dark-input-bg text-app-light-text-primary dark:text-app-dark-text-primary" />
                         </div>
-                        <button disabled={saving || !name.trim()} type="submit" className="w-full mt-7 px-5 py-3 rounded-md bg-gray-900 dark:bg-gray-700 text-white hover:bg-black dark:hover:bg-gray-600 disabled:opacity-60 border border-transparent dark:border-gray-600">{saving ? t('profile.saving') : t('profile.save')}</button>
+                        <button disabled={saving || !name.trim()} type="submit" className="w-full px-5 py-3 text-white border border-transparent rounded-md mt-7 bg-primary-500 dark:bg-primary-500 hover:bg-primary-600 dark:hover:bg-primary-600 disabled:opacity-60 dark:border-app-dark-border">{saving ? t('profile.saving') : t('profile.save')}</button>
                     </form>
                 </section>
             </div>

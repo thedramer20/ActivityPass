@@ -108,13 +108,13 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm text-left flex items-center justify-between"
+                className="flex items-center justify-between w-full px-3 py-2 text-sm text-left transition-all duration-200 border rounded-lg bg-app-light-input-bg border-app-light-border focus:ring-1 focus:ring-app-light-accent focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
             >
-                <span className={value ? '' : 'text-gray-500 dark:text-gray-400'}>
+                <span className={value ? 'text-app-light-text-primary dark:text-app-dark-text-primary' : 'text-app-light-text-secondary dark:text-app-dark-text-secondary'}>
                     {value ? formatDisplayDate(value) : placeholder}
                 </span>
                 <svg
-                    className="w-4 h-4 text-gray-400"
+                    className="w-4 h-4 text-app-light-text-secondary dark:text-app-dark-text-secondary"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -124,25 +124,25 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
             </button>
 
             {isOpen && (
-                <div className="absolute z-50 w-64 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-600">
+                <div className="absolute z-50 w-64 mt-1 border rounded-lg shadow-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between p-3 border-b border-app-light-border dark:border-app-dark-border">
                         <button
                             type="button"
                             onClick={() => changeMonth('prev')}
-                            className="p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                            className="p-1 text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <span className="text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
                             {currentDate.getFullYear()} {monthNames[currentDate.getMonth()]}
                         </span>
                         <button
                             type="button"
                             onClick={() => changeMonth('next')}
-                            className="p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                            className="p-1 text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
@@ -153,7 +153,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                     {/* Weekday headers */}
                     <div className="grid grid-cols-7 gap-1 p-2">
                         {weekdayNames.map((day, index) => (
-                            <div key={index} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-1">
+                            <div key={index} className="py-1 text-xs font-medium text-center text-app-light-text-secondary dark:text-app-dark-text-secondary">
                                 {day}
                             </div>
                         ))}
@@ -167,15 +167,13 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                                 type="button"
                                 onClick={() => day && handleDateSelect(day)}
                                 disabled={!day}
-                                className={`text-center text-sm py-2 rounded-md transition-colors ${
-                                    day
-                                        ? `hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                                            formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day)) === value
-                                                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                                : 'text-gray-900 dark:text-gray-100'
-                                          }`
-                                        : ''
-                                }`}
+                                className={`text-center text-sm py-2 rounded-md transition-colors ${day
+                                    ? `hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover ${formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day)) === value
+                                        ? 'bg-app-light-accent text-app-light-text-on-accent hover:bg-app-light-accent-hover dark:bg-app-dark-accent dark:text-app-dark-text-on-accent dark:hover:bg-app-dark-accent-hover'
+                                        : 'text-app-light-text-primary dark:text-app-dark-text-primary'
+                                    }`
+                                    : ''
+                                    }`}
                             >
                                 {day}
                             </button>

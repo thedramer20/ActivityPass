@@ -38,13 +38,13 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors text-sm text-left flex items-center justify-between"
+                className="w-full px-3 py-2 bg-app-light-input-bg border border-app-light-border rounded-lg focus:ring-1 focus:ring-app-light-accent focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent transition-all duration-200 text-sm text-left flex items-center justify-between min-h-[2.5rem] hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
             >
-                <span className={selectedOption ? '' : 'text-gray-500 dark:text-gray-400'}>
+                <span className={selectedOption ? 'text-app-light-text-primary dark:text-app-dark-text-primary' : 'text-app-light-text-secondary dark:text-app-dark-text-secondary'}>
                     {selectedOption ? selectedOption.label : placeholder}
                 </span>
                 <svg
-                    className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 text-app-light-text-secondary transition-transform dark:text-app-dark-text-secondary ${isOpen ? 'rotate-180' : ''}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -54,7 +54,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
             </button>
 
             {isOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-600">
+                <div className="absolute z-50 w-full mt-1 border rounded-lg shadow-lg bg-app-light-surface-dark border-app-light-border dark:bg-app-dark-surface-dark dark:border-app-dark-border">
                     {options.map((option) => (
                         <button
                             key={option.value}
@@ -63,11 +63,10 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                                 onChange(option.value);
                                 setIsOpen(false);
                             }}
-                            className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                                option.value === value
-                                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                                    : 'text-gray-900 dark:text-gray-100'
-                            }`}
+                            className={`w-full px-3 py-2 text-left text-sm hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover transition-colors ${option.value === value
+                                ? 'bg-app-light-accent text-app-light-text-on-accent dark:bg-app-dark-accent dark:text-app-dark-text-on-accent'
+                                : 'text-app-light-text-primary dark:text-app-dark-text-primary'
+                                }`}
                         >
                             {option.label}
                         </button>
