@@ -12,6 +12,7 @@ interface CustomSelectProps {
     focused?: boolean;
     onFocus?: () => void;
     onBlur?: () => void;
+    disabled?: boolean;
 }
 
 const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -24,7 +25,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     label,
     focused = false,
     onFocus,
-    onBlur
+    onBlur,
+    disabled = false
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const selectRef = useRef<HTMLDivElement>(null);
@@ -45,6 +47,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     const selectedOption = options.find(option => option.value === value);
 
     const handleButtonClick = () => {
+        if (disabled) return;
         setIsOpen(!isOpen);
         if (!isOpen) {
             onFocus?.();
@@ -63,12 +66,13 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         // Floating label version
         return (
             <div ref={selectRef} className={`relative ${className}`}>
-                <div className="relative group border-2 rounded-lg transition-colors duration-200 border-app-light-border dark:border-app-dark-border hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover">
+                <div className="relative group border-2 rounded-lg transition-colors duration-200 border-app-light-border dark:border-app-dark-border hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover bg-app-light-input-bg dark:bg-app-dark-input-bg">
                     <button
                         id={id}
                         type="button"
                         onClick={handleButtonClick}
-                        className="w-full px-4 py-4 bg-app-light-input-bg dark:bg-app-dark-input-bg text-app-light-text-primary dark:text-app-dark-text-primary focus:outline-none rounded-lg text-left flex items-center justify-between min-h-[3.5rem]"
+                        disabled={disabled}
+                        className={`w-full px-4 py-4 text-app-light-text-primary dark:text-app-dark-text-primary focus:outline-none rounded-lg text-left flex items-center justify-between min-h-[3.5rem] ${disabled ? 'bg-app-light-surface-secondary dark:bg-app-dark-surface-secondary text-app-light-text-secondary dark:text-app-dark-text-secondary cursor-not-allowed' : 'bg-transparent hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover'}`}
                     >
                         <span className={selectedOption ? 'text-app-light-text-primary dark:text-app-dark-text-primary' : 'text-app-light-text-secondary dark:text-app-dark-text-secondary'}>
                             {selectedOption ? selectedOption.label : placeholder}
@@ -85,9 +89,9 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                     <label
                         htmlFor={id}
                         className={`absolute left-4 transition-all duration-200 ease-out pointer-events-none ${focused || value
-                            ? 'top-0.5 text-xs text-app-light-text-secondary group-hover:text-app-light-text-primary dark:group-hover:text-app-dark-text-primary font-medium transform -translate-y-0'
-                            : 'top-1/2 text-base text-app-light-text-secondary group-hover:text-app-light-text-primary dark:group-hover:text-app-dark-text-primary transform -translate-y-1/2'
-                            }`}
+                            ? 'top-0.5 text-xs font-medium transform -translate-y-0'
+                            : 'top-1/2 text-base transform -translate-y-1/2'
+                            } ${disabled ? 'text-app-light-text-secondary' : 'text-app-light-text-secondary group-hover:text-app-light-text-primary dark:group-hover:text-app-dark-text-primary'}`}
                     >
                         {label}
                     </label>
@@ -119,7 +123,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full px-3 py-2 bg-app-light-input-bg border border-app-light-border rounded-lg focus:ring-1 focus:ring-app-light-accent focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent transition-all duration-200 text-sm text-left flex items-center justify-between min-h-[2.5rem] hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover"
+                disabled={disabled}
+                className={`w-full px-3 py-2 bg-app-light-input-bg border border-app-light-border rounded-lg focus:ring-1 focus:ring-app-light-accent focus:border-app-light-accent dark:bg-app-dark-input-bg dark:border-app-dark-border dark:text-app-dark-text dark:focus:ring-app-dark-accent dark:focus:border-app-dark-accent transition-all duration-200 text-sm text-left flex items-center justify-between min-h-[2.5rem] ${disabled ? 'bg-app-light-surface-secondary dark:bg-app-dark-surface-secondary text-app-light-text-secondary dark:text-app-dark-text-secondary cursor-not-allowed' : 'hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover'}`}
             >
                 <span className={selectedOption ? 'text-app-light-text-primary dark:text-app-dark-text-primary' : 'text-app-light-text-secondary dark:text-app-dark-text-secondary'}>
                     {selectedOption ? selectedOption.label : placeholder}

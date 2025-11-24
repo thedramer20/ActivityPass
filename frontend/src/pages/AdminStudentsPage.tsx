@@ -640,8 +640,8 @@ const AdminStudentsPage: React.FC = () => {
                                             value={form.gender}
                                             onChange={(value) => setForm(prev => ({ ...prev, gender: value }))}
                                             focused={false}
-                                            onFocus={() => {}}
-                                            onBlur={() => {}}
+                                            onFocus={() => { }}
+                                            onBlur={() => { }}
                                             options={[
                                                 { value: '', label: t('admin.student.gender') },
                                                 { value: 'Male', label: t('admin.student.gender.male', { defaultValue: 'Male' }) },
@@ -656,8 +656,8 @@ const AdminStudentsPage: React.FC = () => {
                                             value={form.chinese_level}
                                             onChange={(value) => setForm(prev => ({ ...prev, chinese_level: value }))}
                                             focused={false}
-                                            onFocus={() => {}}
-                                            onBlur={() => {}}
+                                            onFocus={() => { }}
+                                            onBlur={() => { }}
                                             options={[
                                                 { value: '', label: t('admin.student.chinese_level') },
                                                 { value: 'HSK1', label: 'HSK 1' },
@@ -715,15 +715,19 @@ const AdminStudentsPage: React.FC = () => {
                             <form onSubmit={submitEditStudent} className="space-y-4" autoComplete="off">
                                 {/* Basic Info Row */}
                                 <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.table.studentId')}
-                                        </label>
-                                        <input
-                                            value={editForm.student_id}
-                                            disabled
-                                            className="w-full px-3 py-2 text-sm transition-colors border rounded-lg bg-app-light-surface-secondary border-app-light-border dark:bg-app-dark-surface-secondary dark:border-app-dark-border dark:text-app-dark-text-secondary"
-                                        />
+                                    <div className="relative">
+                                        <div className="relative group border-2 rounded-lg transition-colors duration-200 border-app-light-border dark:border-app-dark-border bg-app-light-surface-secondary dark:bg-app-dark-surface-secondary">
+                                            <input
+                                                value={editForm.student_id}
+                                                disabled
+                                                className="w-full px-4 py-4 placeholder-transparent transition-colors duration-200 bg-transparent text-app-light-text-secondary dark:text-app-dark-text-secondary focus:outline-none rounded-lg"
+                                            />
+                                            <label
+                                                className="absolute left-4 top-0.5 text-xs text-app-light-text-secondary font-medium pointer-events-none transform -translate-y-0"
+                                            >
+                                                {t('admin.table.studentId')}
+                                            </label>
+                                        </div>
                                     </div>
                                     <div className="relative">
                                         <div className="relative group border-2 rounded-lg transition-colors duration-200 border-app-light-border dark:border-app-dark-border hover:border-app-light-border-hover dark:hover:border-app-dark-border-hover">
@@ -919,8 +923,8 @@ const AdminStudentsPage: React.FC = () => {
                                             value={editForm.gender}
                                             onChange={(value) => setEditForm(prev => ({ ...prev, gender: value }))}
                                             focused={false}
-                                            onFocus={() => {}}
-                                            onBlur={() => {}}
+                                            onFocus={() => { }}
+                                            onBlur={() => { }}
                                             options={[
                                                 { value: '', label: t('admin.student.gender') },
                                                 { value: 'Male', label: t('admin.student.gender.male', { defaultValue: 'Male' }) },
@@ -935,8 +939,8 @@ const AdminStudentsPage: React.FC = () => {
                                             value={editForm.chinese_level}
                                             onChange={(value) => setEditForm(prev => ({ ...prev, chinese_level: value }))}
                                             focused={false}
-                                            onFocus={() => {}}
-                                            onBlur={() => {}}
+                                            onFocus={() => { }}
+                                            onBlur={() => { }}
                                             options={[
                                                 { value: '', label: t('admin.student.chinese_level') },
                                                 { value: 'HSK1', label: 'HSK 1' },
@@ -953,29 +957,31 @@ const AdminStudentsPage: React.FC = () => {
 
                                 {/* Form Actions */}
                                 <div className="flex flex-col gap-3 pt-3 border-t border-app-light-border dark:border-app-dark-border">
-                                    <button
-                                        type="button"
-                                        onClick={() => resetPassword(editingStudent)}
-                                        className="self-start px-4 py-2 text-sm font-medium transition-colors border rounded-lg text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent"
-                                        disabled={resettingUserId === editingStudent.id}
-                                    >
-                                        {resettingUserId === editingStudent.id ? t('profile.saving') : t('admin.resetPassword')}
-                                    </button>
-                                    <div className="flex flex-col-reverse space-y-2 space-y-reverse sm:flex-row sm:justify-end sm:space-x-3 sm:space-y-0">
+                                    <div className="flex flex-col-reverse space-y-2 space-y-reverse sm:flex-row sm:justify-between sm:space-x-3 sm:space-y-0 sm:items-center">
                                         <button
                                             type="button"
-                                            onClick={closeEditModal}
-                                            className="w-full px-4 py-2 text-sm font-medium transition-colors border rounded-lg sm:w-auto text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent"
+                                            onClick={() => resetPassword(editingStudent)}
+                                            className="w-full px-4 py-2 text-sm font-medium transition-colors border rounded-lg sm:w-auto text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent"
+                                            disabled={resettingUserId === editingStudent.id}
                                         >
-                                            {t('common.cancel')}
+                                            {resettingUserId === editingStudent.id ? t('profile.saving') : t('admin.resetPassword')}
                                         </button>
-                                        <button
-                                            type="submit"
-                                            disabled={updating}
-                                            className="w-full px-4 py-2 text-sm font-medium text-white transition-colors border border-transparent rounded-lg sm:w-auto bg-app-light-accent hover:bg-app-light-accent-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-app-dark-accent dark:hover:bg-app-dark-accent-hover dark:focus:ring-app-dark-accent"
-                                        >
-                                            {updating ? t('profile.saving') : t('admin.saveChanges')}
-                                        </button>
+                                        <div className="flex flex-col-reverse space-y-2 space-y-reverse sm:flex-row sm:space-x-3 sm:space-y-0">
+                                            <button
+                                                type="button"
+                                                onClick={closeEditModal}
+                                                className="w-full px-4 py-2 text-sm font-medium transition-colors border rounded-lg sm:w-auto text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent"
+                                            >
+                                                {t('common.cancel')}
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={updating}
+                                                className="w-full px-4 py-2 text-sm font-medium text-white transition-colors border border-transparent rounded-lg sm:w-auto bg-app-light-accent hover:bg-app-light-accent-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-app-dark-accent dark:hover:bg-app-dark-accent-hover dark:focus:ring-app-dark-accent"
+                                            >
+                                                {updating ? t('profile.saving') : t('admin.saveChanges')}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </form>
@@ -1004,114 +1010,193 @@ const AdminStudentsPage: React.FC = () => {
                             <div className="space-y-4">
                                 {/* Basic Info Row */}
                                 <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.table.studentId')}
-                                        </label>
-                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {viewingStudent.student_profile?.student_id || '—'}
+                                    <div className="relative">
+                                        <div className="relative group border-2 rounded-lg transition-colors duration-200 border-app-light-border dark:border-app-dark-border bg-app-light-surface-secondary dark:bg-app-dark-surface-secondary">
+                                            <input
+                                                id="view_student_id"
+                                                value={viewingStudent.student_profile?.student_id || ''}
+                                                readOnly
+                                                className="w-full px-4 py-4 placeholder-transparent transition-colors duration-200 bg-transparent text-app-light-text-secondary dark:text-app-dark-text-secondary focus:outline-none rounded-lg"
+                                            />
+                                            <label
+                                                htmlFor="view_student_id"
+                                                className="absolute left-4 top-0.5 text-xs text-app-light-text-secondary font-medium pointer-events-none transform -translate-y-0"
+                                            >
+                                                {t('admin.table.studentId')}
+                                            </label>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('profile.name')}
-                                        </label>
-                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {viewingStudent.first_name || '—'}
+                                    <div className="relative">
+                                        <div className="relative group border-2 rounded-lg transition-colors duration-200 border-app-light-border dark:border-app-dark-border bg-app-light-surface-secondary dark:bg-app-dark-surface-secondary">
+                                            <input
+                                                id="view_full_name"
+                                                value={viewingStudent.first_name || ''}
+                                                readOnly
+                                                className="w-full px-4 py-4 placeholder-transparent transition-colors duration-200 bg-transparent text-app-light-text-secondary dark:text-app-dark-text-secondary focus:outline-none rounded-lg"
+                                            />
+                                            <label
+                                                htmlFor="view_full_name"
+                                                className="absolute left-4 top-0.5 text-xs text-app-light-text-secondary font-medium pointer-events-none transform -translate-y-0"
+                                            >
+                                                {t('profile.name')}
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Contact Info */}
                                 <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.table.email')}
-                                        </label>
-                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {viewingStudent.email || '—'}
+                                    <div className="relative">
+                                        <div className="relative group border-2 rounded-lg transition-colors duration-200 border-app-light-border dark:border-app-dark-border bg-app-light-surface-secondary dark:bg-app-dark-surface-secondary">
+                                            <input
+                                                id="view_email"
+                                                value={viewingStudent.email || ''}
+                                                readOnly
+                                                className="w-full px-4 py-4 placeholder-transparent transition-colors duration-200 bg-transparent text-app-light-text-secondary dark:text-app-dark-text-secondary focus:outline-none rounded-lg"
+                                            />
+                                            <label
+                                                htmlFor="view_email"
+                                                className="absolute left-4 top-0.5 text-xs text-app-light-text-secondary font-medium pointer-events-none transform -translate-y-0"
+                                            >
+                                                {t('admin.table.email')}
+                                            </label>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.student.phone')}
-                                        </label>
-                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {viewingStudent.student_profile?.phone || '—'}
+                                    <div className="relative">
+                                        <div className="relative group border-2 rounded-lg transition-colors duration-200 border-app-light-border dark:border-app-dark-border bg-app-light-surface-secondary dark:bg-app-dark-surface-secondary">
+                                            <input
+                                                id="view_phone"
+                                                value={viewingStudent.student_profile?.phone || ''}
+                                                readOnly
+                                                className="w-full px-4 py-4 placeholder-transparent transition-colors duration-200 bg-transparent text-app-light-text-secondary dark:text-app-dark-text-secondary focus:outline-none rounded-lg"
+                                            />
+                                            <label
+                                                htmlFor="view_phone"
+                                                className="absolute left-4 top-0.5 text-xs text-app-light-text-secondary font-medium pointer-events-none transform -translate-y-0"
+                                            >
+                                                {t('admin.student.phone')}
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Academic Info */}
                                 <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.student.major')}
-                                        </label>
-                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {viewingStudent.student_profile?.major || '—'}
+                                    <div className="relative">
+                                        <div className="relative group border-2 rounded-lg transition-colors duration-200 border-app-light-border dark:border-app-dark-border bg-app-light-surface-secondary dark:bg-app-dark-surface-secondary">
+                                            <input
+                                                id="view_major"
+                                                value={viewingStudent.student_profile?.major || ''}
+                                                readOnly
+                                                className="w-full px-4 py-4 placeholder-transparent transition-colors duration-200 bg-transparent text-app-light-text-secondary dark:text-app-dark-text-secondary focus:outline-none rounded-lg"
+                                            />
+                                            <label
+                                                htmlFor="view_major"
+                                                className="absolute left-4 top-0.5 text-xs text-app-light-text-secondary font-medium pointer-events-none transform -translate-y-0"
+                                            >
+                                                {t('admin.student.major')}
+                                            </label>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.student.college')}
-                                        </label>
-                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {viewingStudent.student_profile?.college || '—'}
+                                    <div className="relative">
+                                        <div className="relative group border-2 rounded-lg transition-colors duration-200 border-app-light-border dark:border-app-dark-border bg-app-light-surface-secondary dark:bg-app-dark-surface-secondary">
+                                            <input
+                                                id="view_college"
+                                                value={viewingStudent.student_profile?.college || ''}
+                                                readOnly
+                                                className="w-full px-4 py-4 placeholder-transparent transition-colors duration-200 bg-transparent text-app-light-text-secondary dark:text-app-dark-text-secondary focus:outline-none rounded-lg"
+                                            />
+                                            <label
+                                                htmlFor="view_college"
+                                                className="absolute left-4 top-0.5 text-xs text-app-light-text-secondary font-medium pointer-events-none transform -translate-y-0"
+                                            >
+                                                {t('admin.student.college')}
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Class and Year */}
                                 <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.student.class_name')}
-                                        </label>
-                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {viewingStudent.student_profile?.class_name || '—'}
+                                    <div className="relative">
+                                        <div className="relative group border-2 rounded-lg transition-colors duration-200 border-app-light-border dark:border-app-dark-border bg-app-light-surface-secondary dark:bg-app-dark-surface-secondary">
+                                            <input
+                                                id="view_class_name"
+                                                value={viewingStudent.student_profile?.class_name || ''}
+                                                readOnly
+                                                className="w-full px-4 py-4 placeholder-transparent transition-colors duration-200 bg-transparent text-app-light-text-secondary dark:text-app-dark-text-secondary focus:outline-none rounded-lg"
+                                            />
+                                            <label
+                                                htmlFor="view_class_name"
+                                                className="absolute left-4 top-0.5 text-xs text-app-light-text-secondary font-medium pointer-events-none transform -translate-y-0"
+                                            >
+                                                {t('admin.student.class_name')}
+                                            </label>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.student.year')}
-                                        </label>
-                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {viewingStudent.student_profile?.year ?? '—'}
+                                    <div className="relative">
+                                        <div className="relative group border-2 rounded-lg transition-colors duration-200 border-app-light-border dark:border-app-dark-border bg-app-light-surface-secondary dark:bg-app-dark-surface-secondary">
+                                            <input
+                                                id="view_year"
+                                                value={viewingStudent.student_profile?.year?.toString() || ''}
+                                                readOnly
+                                                className="w-full px-4 py-4 placeholder-transparent transition-colors duration-200 bg-transparent text-app-light-text-secondary dark:text-app-dark-text-secondary focus:outline-none rounded-lg"
+                                            />
+                                            <label
+                                                htmlFor="view_year"
+                                                className="absolute left-4 top-0.5 text-xs text-app-light-text-secondary font-medium pointer-events-none transform -translate-y-0"
+                                            >
+                                                {t('admin.student.year')}
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Gender and Chinese Level */}
                                 <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.student.gender')}
-                                        </label>
-                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {viewingStudent.student_profile?.gender || '—'}
-                                        </div>
+                                    <div className="relative">
+                                        <CustomSelect
+                                            id="view_gender"
+                                            label={t('admin.student.gender')}
+                                            value={viewingStudent.student_profile?.gender || ''}
+                                            onChange={() => { }}
+                                            disabled={true}
+                                            focused={false}
+                                            onFocus={() => { }}
+                                            onBlur={() => { }}
+                                            options={[
+                                                { value: '', label: t('admin.student.gender') },
+                                                { value: 'Male', label: t('admin.student.gender.male', { defaultValue: 'Male' }) },
+                                                { value: 'Female', label: t('admin.student.gender.female', { defaultValue: 'Female' }) },
+                                            ]}
+                                        />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
-                                            {t('admin.student.chinese_level')}
-                                        </label>
-                                        <div className="w-full px-3 py-2 text-sm border rounded-lg bg-app-light-surface border-app-light-border dark:bg-app-dark-surface dark:border-app-dark-border dark:text-app-dark-text">
-                                            {viewingStudent.student_profile?.chinese_level || '—'}
-                                        </div>
+                                    <div className="relative">
+                                        <CustomSelect
+                                            id="view_chinese_level"
+                                            label={t('admin.student.chinese_level')}
+                                            value={viewingStudent.student_profile?.chinese_level || ''}
+                                            onChange={() => { }}
+                                            disabled={true}
+                                            focused={false}
+                                            onFocus={() => { }}
+                                            onBlur={() => { }}
+                                            options={[
+                                                { value: '', label: t('admin.student.chinese_level') },
+                                                { value: 'HSK1', label: 'HSK 1' },
+                                                { value: 'HSK2', label: 'HSK 2' },
+                                                { value: 'HSK3', label: 'HSK 3' },
+                                                { value: 'HSK4', label: 'HSK 4' },
+                                                { value: 'HSK5', label: 'HSK 5' },
+                                                { value: 'HSK6', label: 'HSK 6' },
+                                                { value: 'Native', label: t('admin.student.chinese_level.native', { defaultValue: 'Native' }) },
+                                            ]}
+                                        />
                                     </div>
                                 </div>
 
                                 {/* Form Actions */}
                                 <div className="flex flex-col gap-3 pt-3 border-t border-app-light-border dark:border-app-dark-border">
-                                    <button
-                                        type="button"
-                                        onClick={() => resetPassword(viewingStudent)}
-                                        disabled={resettingUserId === viewingStudent.id}
-                                        className="self-start px-4 py-2 text-sm font-medium transition-colors border rounded-lg text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent"
-                                    >
-                                        {resettingUserId === viewingStudent.id ? t('profile.saving') : t('admin.resetPassword')}
-                                    </button>
                                     <div className="flex flex-col-reverse space-y-2 space-y-reverse sm:flex-row sm:justify-end sm:space-x-3 sm:space-y-0">
                                         <button
                                             type="button"
