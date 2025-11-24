@@ -226,6 +226,8 @@ const AdminActivitiesPage: React.FC = () => {
     const [editingActivity, setEditingActivity] = useState<AdminActivity | null>(null);
     const [editForm, setEditForm] = useState(defaultActivityForm());
     const [updating, setUpdating] = useState(false);
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+    const [viewingActivity, setViewingActivity] = useState<AdminActivity | null>(null);
 
     const headers = useMemo(() => ({
         'Content-Type': 'application/json',
@@ -281,7 +283,19 @@ const AdminActivitiesPage: React.FC = () => {
         setModalOpen(true);
     };
 
+    const openViewModal = (activity: AdminActivity) => {
+        setViewingActivity(activity);
+        setViewModalOpen(true);
+    };
+
+    const closeViewModal = () => {
+        setViewModalOpen(false);
+        setViewingActivity(null);
+    };
+
     const openEditModal = (activity: AdminActivity) => {
+        setViewingActivity(null);
+        setViewModalOpen(false);
         setEditingActivity(activity);
         setEditForm({
             title: activity.title || '',
@@ -507,14 +521,9 @@ const AdminActivitiesPage: React.FC = () => {
                                         <td className="px-4 py-2 whitespace-nowrap">{activity.capacity}</td>
                                         <td className="px-4 py-2 whitespace-nowrap">{activity.created_by_username}</td>
                                         <td className="px-4 py-2">
-                                            <div className="flex gap-2">
-                                                <button type="button" onClick={() => openEditModal(activity)} className="text-sm text-gray-900 dark:text-gray-100 font-medium">
-                                                    {t('common.edit')}
-                                                </button>
-                                                <button type="button" onClick={() => deleteActivity(activity)} className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                                    {t('common.delete')}
-                                                </button>
-                                            </div>
+                                            <button type="button" onClick={() => openViewModal(activity)} className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                                {t('common.view')}
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -899,6 +908,169 @@ const AdminActivitiesPage: React.FC = () => {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {viewModalOpen && viewingActivity && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-2xl bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700">
+                        <div className="flex items-center justify-between p-4 pb-3">
+                            <div>
+                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                                    {t('admin.viewActivity', { defaultValue: 'View Activity' })}
+                                </p>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{viewingActivity.title}</h2>
+                            </div>
+                            <button type="button" onClick={closeViewModal} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="px-4 pb-4">
+                            <div className="space-y-4">
+                                {/* Basic Info */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.activity.title', { defaultValue: 'Title' })}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingActivity.title || '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.activity.capacity', { defaultValue: 'Capacity' })}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingActivity.capacity || '—'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Description */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {t('admin.activity.description', { defaultValue: 'Description' })}
+                                    </label>
+                                    <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm min-h-[60px]">
+                                        {viewingActivity.description || '—'}
+                                    </div>
+                                </div>
+
+                                {/* Date/Time */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.activity.startDateTime', { defaultValue: 'Start Date & Time' })}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingActivity.start_datetime ? formatDateTime(viewingActivity.start_datetime) : '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.activity.endDateTime', { defaultValue: 'End Date & Time' })}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingActivity.end_datetime ? formatDateTime(viewingActivity.end_datetime) : '—'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Location */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {t('admin.activity.location', { defaultValue: 'Location' })}
+                                    </label>
+                                    <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        {typeof viewingActivity.location === 'string' ? viewingActivity.location : 
+                                         viewingActivity.location?.address || 
+                                         (viewingActivity.location?.lat && viewingActivity.location?.lng ? 
+                                          `${viewingActivity.location.lat.toFixed(6)}, ${viewingActivity.location.lng.toFixed(6)}` : '—')}
+                                    </div>
+                                </div>
+
+                                {/* Requirements */}
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.activity.college', { defaultValue: 'College' })}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingActivity.college_required === 'all' ? t('admin.allColleges', { defaultValue: 'All Colleges' }) :
+                                             Array.isArray(viewingActivity.college_required) ? viewingActivity.college_required.join(', ') : '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.activity.countries', { defaultValue: 'Countries' })}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingActivity.countries === 'all' ? t('admin.allCountries', { defaultValue: 'All Countries' }) :
+                                             Array.isArray(viewingActivity.countries) ? viewingActivity.countries.join(', ') : '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.activity.chineseLevelMin', { defaultValue: 'Min Chinese Level' })}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingActivity.chinese_level_min || '—'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Metadata */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.table.creator', { defaultValue: 'Creator' })}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingActivity.created_by_username || '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.createdAt', { defaultValue: 'Created At' })}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingActivity.created_at ? formatDateTime(viewingActivity.created_at) : '—'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Form Actions */}
+                                <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                    <button
+                                        type="button"
+                                        onClick={() => deleteActivity(viewingActivity)}
+                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-500 dark:hover:bg-red-600 transition-colors"
+                                    >
+                                        {t('common.delete')}
+                                    </button>
+                                    <div className="flex flex-col-reverse sm:flex-row sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0">
+                                        <button
+                                            type="button"
+                                            onClick={closeViewModal}
+                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                        >
+                                            {t('common.close')}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => openEditModal(viewingActivity)}
+                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                        >
+                                            {t('common.edit')}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

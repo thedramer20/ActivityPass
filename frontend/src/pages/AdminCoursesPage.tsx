@@ -53,6 +53,8 @@ const AdminCoursesPage: React.FC = () => {
     const [saving, setSaving] = useState(false);
     const [editingCourse, setEditingCourse] = useState<AdminCourse | null>(null);
     const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+    const [viewingCourse, setViewingCourse] = useState<AdminCourse | null>(null);
 
     const authHeaders = useMemo(() => {
         const base: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -116,6 +118,16 @@ const AdminCoursesPage: React.FC = () => {
     const formatPeriods = (course: AdminCourse) => (course.periods?.length ? course.periods.join(', ') : '—');
     const formatWeeks = (course: AdminCourse) => (course.week_pattern?.length ? course.week_pattern.join(', ') : '—');
 
+
+    const openViewModal = (course: AdminCourse) => {
+        setViewingCourse(course);
+        setViewModalOpen(true);
+    };
+
+    const closeViewModal = () => {
+        setViewModalOpen(false);
+        setViewingCourse(null);
+    };
 
     const openCreateModal = () => {
         setForm(defaultCourseForm());
@@ -294,14 +306,9 @@ const AdminCoursesPage: React.FC = () => {
                                             <td className="px-4 py-2 whitespace-nowrap">{formatWeeks(course)}</td>
                                             <td className="px-4 py-2 whitespace-nowrap">{course.location || '—'}</td>
                                             <td className="px-4 py-2 text-right whitespace-nowrap">
-                                                <div className="flex justify-end gap-3">
-                                                    <button type="button" onClick={() => openEditModal(course)} className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                        {t('common.edit')}
-                                                    </button>
-                                                    <button type="button" onClick={() => deleteCourse(course.id)} className="text-sm text-red-600" disabled={deletingId === course.id}>
-                                                        {t('admin.courseDelete')}
-                                                    </button>
-                                                </div>
+                                                <button type="button" onClick={() => openViewModal(course)} className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                    {t('common.view')}
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
@@ -520,6 +527,173 @@ const AdminCoursesPage: React.FC = () => {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {viewModalOpen && viewingCourse && (
+                <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-8 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-2xl bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700 mt-8 mb-8">
+                        <div className="flex items-center justify-between p-4 pb-3">
+                            <div>
+                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                                    {t('admin.viewCourse', { defaultValue: 'View Course' })}
+                                </p>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{viewingCourse.title}</h2>
+                            </div>
+                            <button type="button" onClick={closeViewModal} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="px-4 pb-4">
+                            <div className="space-y-4">
+                                {/* Basic Info Row */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.courseForm.code')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingCourse.code || '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.courseForm.type')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingCourse.course_type === 'Theory' ? t('admin.courseForm.type.theory') :
+                                             viewingCourse.course_type === 'Technical' ? t('admin.courseForm.type.technical') :
+                                             viewingCourse.course_type === 'Practice' ? t('admin.courseForm.type.practice') :
+                                             viewingCourse.course_type === 'Experiment' ? t('admin.courseForm.type.experiment') :
+                                             viewingCourse.course_type || '—'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Title */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {t('admin.courseForm.title')}
+                                    </label>
+                                    <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        {viewingCourse.title || '—'}
+                                    </div>
+                                </div>
+
+                                {/* Teacher and Location */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.courseForm.teacher')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingCourse.teacher || '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.courseForm.location')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingCourse.location || '—'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Term, Date, Day */}
+                                <div className="grid gap-4 sm:grid-cols-3">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.courseForm.term')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingCourse.term === 'first' ? t('admin.courseForm.term.first') :
+                                             viewingCourse.term === 'second' ? t('admin.courseForm.term.second') : viewingCourse.term || '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.courseForm.firstWeek')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingCourse.first_week_monday || '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.courseForm.day')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {formatDay(viewingCourse.day_of_week)}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Time and Periods */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.course.time')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {formatTime(viewingCourse)}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.courseForm.periods')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {formatPeriods(viewingCourse)}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Weeks */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {t('admin.courseForm.weeks')}
+                                    </label>
+                                    <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        {formatWeeks(viewingCourse)}
+                                    </div>
+                                </div>
+
+                                {/* Form Actions */}
+                                <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                    <button
+                                        type="button"
+                                        onClick={() => deleteCourse(viewingCourse.id)}
+                                        disabled={deletingId === viewingCourse.id}
+                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-red-500 dark:hover:bg-red-600 transition-colors"
+                                    >
+                                        {t('admin.courseDelete')}
+                                    </button>
+                                    <div className="flex flex-col-reverse sm:flex-row sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0">
+                                        <button
+                                            type="button"
+                                            onClick={closeViewModal}
+                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                        >
+                                            {t('common.close')}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                closeViewModal();
+                                                openEditModal(viewingCourse);
+                                            }}
+                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                        >
+                                            {t('common.edit')}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

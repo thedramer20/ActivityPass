@@ -41,6 +41,8 @@ const AdminStudentsPage: React.FC = () => {
     const [editingStudent, setEditingStudent] = useState<AdminUser | null>(null);
     const [editForm, setEditForm] = useState(defaultStudentForm());
     const [updating, setUpdating] = useState(false);
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+    const [viewingStudent, setViewingStudent] = useState<AdminUser | null>(null);
     const studentProfileFieldDefs = useMemo(() => ([
         { name: 'phone', label: t('admin.student.phone') },
         { name: 'major', label: t('admin.student.major') },
@@ -156,6 +158,16 @@ const AdminStudentsPage: React.FC = () => {
         setEditModalOpen(false);
         setEditingStudent(null);
         setEditForm(defaultStudentForm());
+    };
+
+    const openViewModal = (student: AdminUser) => {
+        setViewingStudent(student);
+        setViewModalOpen(true);
+    };
+
+    const closeViewModal = () => {
+        setViewModalOpen(false);
+        setViewingStudent(null);
     };
 
     const submitEditStudent = async (evt: React.FormEvent) => {
@@ -336,8 +348,8 @@ const AdminStudentsPage: React.FC = () => {
                                         <td className="px-4 py-2">{student.student_profile?.class_name || '—'}</td>
                                         <td className="px-4 py-2 whitespace-nowrap">{student.student_profile?.year ?? '—'}</td>
                                         <td className="px-4 py-2">
-                                            <button type="button" onClick={() => openEditModal(student)} className="text-sm text-gray-900 dark:text-gray-100 font-medium">
-                                                {t('common.edit')}
+                                            <button type="button" onClick={() => openViewModal(student)} className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                                {t('common.view')}
                                             </button>
                                         </td>
                                     </tr>
@@ -769,6 +781,160 @@ const AdminStudentsPage: React.FC = () => {
                                     </div>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {viewModalOpen && viewingStudent && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-2xl bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700">
+                        <div className="flex items-center justify-between p-4 pb-3">
+                            <div>
+                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                                    {t('admin.viewStudent', { defaultValue: 'View Student' })}
+                                </p>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{viewingStudent.first_name || viewingStudent.username}</h2>
+                            </div>
+                            <button type="button" onClick={closeViewModal} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="px-4 pb-4">
+                            <div className="space-y-4">
+                                {/* Basic Info Row */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.table.studentId')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingStudent.student_profile?.student_id || '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('profile.name')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingStudent.first_name || '—'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Contact Info */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.table.email')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingStudent.email || '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.phone')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingStudent.student_profile?.phone || '—'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Academic Info */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.major')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingStudent.student_profile?.major || '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.college')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingStudent.student_profile?.college || '—'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Class and Year */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.class_name')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingStudent.student_profile?.class_name || '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.year')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingStudent.student_profile?.year ?? '—'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Gender and Chinese Level */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.gender')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingStudent.student_profile?.gender || '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.student.chinese_level')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingStudent.student_profile?.chinese_level || '—'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Form Actions */}
+                                <div className="flex flex-col gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                    <button
+                                        type="button"
+                                        onClick={() => resetPassword(viewingStudent)}
+                                        disabled={resettingUserId === viewingStudent.id}
+                                        className="self-start px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                    >
+                                        {resettingUserId === viewingStudent.id ? t('profile.saving') : t('admin.resetPassword')}
+                                    </button>
+                                    <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0">
+                                        <button
+                                            type="button"
+                                            onClick={closeViewModal}
+                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                        >
+                                            {t('common.close')}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                closeViewModal();
+                                                openEditModal(viewingStudent);
+                                            }}
+                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                        >
+                                            {t('common.edit')}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

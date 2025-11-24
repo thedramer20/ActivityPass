@@ -30,6 +30,8 @@ const AdminStaffPage: React.FC = () => {
     const [securityPrefs, setSecurityPrefs] = useState<SecurityPreferences | null>(null);
     const [securityLoading, setSecurityLoading] = useState(false);
     const [togglingSecurity, setTogglingSecurity] = useState(false);
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+    const [viewingStaff, setViewingStaff] = useState<AdminUser | null>(null);
 
     const headers = useMemo(() => ({
         'Content-Type': 'application/json',
@@ -112,6 +114,16 @@ const AdminStaffPage: React.FC = () => {
         } finally {
             setResettingUserId(null);
         }
+    };
+
+    const openViewModal = (member: AdminUser) => {
+        setViewingStaff(member);
+        setViewModalOpen(true);
+    };
+
+    const closeViewModal = () => {
+        setViewModalOpen(false);
+        setViewingStaff(null);
     };
 
     const openModal = () => {
@@ -284,8 +296,8 @@ const AdminStaffPage: React.FC = () => {
                                         <td className="px-4 py-2 whitespace-nowrap">{member.email || '—'}</td>
                                         <td className="px-4 py-2 whitespace-nowrap">{member.phone || '—'}</td>
                                         <td className="px-4 py-2">
-                                            <button type="button" onClick={() => openEditModal(member)} className="text-sm text-gray-900 dark:text-gray-100 font-medium">
-                                                {t('common.edit')}
+                                            <button type="button" onClick={() => openViewModal(member)} className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                                {t('common.view')}
                                             </button>
                                         </td>
                                     </tr>
@@ -489,6 +501,100 @@ const AdminStaffPage: React.FC = () => {
                                     </div>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {viewModalOpen && viewingStaff && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-lg bg-white border border-gray-200 shadow-2xl rounded-2xl dark:bg-gray-900 dark:border-gray-700">
+                        <div className="flex items-center justify-between p-4 pb-3">
+                            <div>
+                                <p className="text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                                    {t('admin.viewStaff', { defaultValue: 'View Staff' })}
+                                </p>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{viewingStaff.username}</h2>
+                            </div>
+                            <button type="button" onClick={closeViewModal} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label={t('common.close')}>
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="px-4 pb-4">
+                            <div className="space-y-4">
+                                {/* Username (disabled) */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {t('admin.table.username')}
+                                    </label>
+                                    <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        {viewingStaff.username || '—'}
+                                    </div>
+                                </div>
+
+                                {/* Basic Info Row */}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('profile.name')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingStaff.first_name || '—'}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {t('admin.table.email')}
+                                        </label>
+                                        <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                            {viewingStaff.email || '—'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Phone */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {t('admin.table.phone')}
+                                    </label>
+                                    <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+                                        {viewingStaff.phone || '—'}
+                                    </div>
+                                </div>
+
+                                {/* Form Actions */}
+                                <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                    <button
+                                        type="button"
+                                        onClick={() => resetPassword(viewingStaff)}
+                                        disabled={resettingUserId === viewingStaff.id}
+                                        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                    >
+                                        {resettingUserId === viewingStaff.id ? t('profile.saving') : t('admin.resetPassword')}
+                                    </button>
+                                    <div className="flex flex-col-reverse sm:flex-row sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0">
+                                        <button
+                                            type="button"
+                                            onClick={closeViewModal}
+                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400 transition-colors"
+                                        >
+                                            {t('common.close')}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                closeViewModal();
+                                                openEditModal(viewingStaff);
+                                            }}
+                                            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                                        >
+                                            {t('common.edit')}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
