@@ -16,7 +16,7 @@ class Command(BaseCommand):
         except Exception as e:
             self.stderr.write(self.style.WARNING(f'seed_students failed: {e}'))
         try:
-            call_command('seed_courses')
+            call_command('seed_courses', skip_existing=True)
         except Exception as e:
             self.stderr.write(self.style.WARNING(f'seed_courses failed: {e}'))
         self.stdout.write(self.style.SUCCESS('Initialization complete.'))

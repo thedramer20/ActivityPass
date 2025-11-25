@@ -71,6 +71,19 @@ const AdminStudentsPage: React.FC = () => {
     const [editCollegeFocused, setEditCollegeFocused] = useState(false);
     const [editClassNameFocused, setEditClassNameFocused] = useState(false);
     const [editYearFocused, setEditYearFocused] = useState(false);
+
+    // Activities and courses popup states
+    const [activitiesModalOpen, setActivitiesModalOpen] = useState(false);
+    const [coursesModalOpen, setCoursesModalOpen] = useState(false);
+    const [selectedStudentActivities, setSelectedStudentActivities] = useState<any[]>([]);
+    const [selectedStudentCourses, setSelectedStudentCourses] = useState<any[]>([]);
+    const [selectedStudentForActivities, setSelectedStudentForActivities] = useState<any>(null);
+    const [selectedStudentForCourses, setSelectedStudentForCourses] = useState<any>(null);
+    const [loadingActivities, setLoadingActivities] = useState(false);
+    const [loadingCourses, setLoadingCourses] = useState(false);
+
+    // Student counts cache
+    const [studentCounts, setStudentCounts] = useState<Record<number, { activities: number; courses: number }>>({});
     const studentProfileFieldDefs = useMemo(() => ([
         { name: 'phone', label: t('admin.student.phone') },
         { name: 'major', label: t('admin.student.major') },
@@ -117,6 +130,34 @@ const AdminStudentsPage: React.FC = () => {
         });
     }, []);
 
+    const loadStudentCounts = useCallback(async (students: AdminUser[]) => {
+        const counts: Record<number, { activities: number; courses: number }> = {};
+
+        // Load counts for all students in parallel
+        const countPromises = students.map(async (student) => {
+            try {
+                const [activitiesRes, coursesRes] = await Promise.all([
+                    fetch(`/api/participations/?student=${student.id}`, { headers: authHeaders }),
+                    fetch(`/api/admin/course-enrollments/?student=${student.id}`, { headers: authHeaders })
+                ]);
+
+                const activitiesData = activitiesRes.ok ? await activitiesRes.json() : [];
+                const coursesData = coursesRes.ok ? await coursesRes.json() : [];
+
+                counts[student.id] = {
+                    activities: activitiesData.length,
+                    courses: coursesData.length
+                };
+            } catch (err) {
+                console.error(`Error loading counts for student ${student.id}:`, err);
+                counts[student.id] = { activities: 0, courses: 0 };
+            }
+        });
+
+        await Promise.all(countPromises);
+        setStudentCounts(counts);
+    }, [authHeaders]);
+
     const loadStudents = useCallback(async (query = '') => {
         if (!tokens) return;
         setLoading(true);
@@ -126,14 +167,18 @@ const AdminStudentsPage: React.FC = () => {
             if (!res.ok) throw new Error('fetch_failed');
             const data = await res.json();
             setAllStudents(data);
-            setStudents(filterStudents(query, data));
+            const filteredData = filterStudents(query, data);
+            setStudents(filteredData);
+
+            // Load counts for the filtered students
+            await loadStudentCounts(filteredData);
         } catch (err) {
             console.error(err);
             setNotice({ type: 'error', text: t('admin.fetchError') });
         } finally {
             setLoading(false);
         }
-    }, [tokens, authHeaders, t, filterStudents]);
+    }, [tokens, authHeaders, t, filterStudents, loadStudentCounts]);
 
     useEffect(() => {
         if (tokens) {
@@ -314,15 +359,63 @@ const AdminStudentsPage: React.FC = () => {
         }
     };
 
+    const loadStudentActivities = useCallback(async (student: AdminUser) => {
+        setLoadingActivities(true);
+        try {
+            const res = await fetch(`/api/participations/?student=${student.id}`, { headers: authHeaders });
+            if (!res.ok) throw new Error('fetch_activities_failed');
+            const data = await res.json();
+            setSelectedStudentActivities(data);
+            setSelectedStudentForActivities(student);
+            setActivitiesModalOpen(true);
+        } catch (err) {
+            console.error(err);
+            setNotice({ type: 'error', text: t('admin.fetchError') });
+        } finally {
+            setLoadingActivities(false);
+        }
+    }, [authHeaders, t]);
+
+    const loadStudentCourses = useCallback(async (student: AdminUser) => {
+        setLoadingCourses(true);
+        try {
+            const res = await fetch(`/api/admin/course-enrollments/?student=${student.id}`, { headers: authHeaders });
+            if (!res.ok) throw new Error('fetch_courses_failed');
+            const data = await res.json();
+            // Transform course enrollment data to course data
+            const courses = data.map((enrollment: any) => enrollment.course);
+            setSelectedStudentCourses(courses);
+            setSelectedStudentForCourses(student);
+            setCoursesModalOpen(true);
+        } catch (err) {
+            console.error(err);
+            setNotice({ type: 'error', text: t('admin.fetchError') });
+        } finally {
+            setLoadingCourses(false);
+        }
+    }, [authHeaders, t]);
+
+    const openActivityView = (activity: any) => {
+        // Navigate to activity view - for now just close the modal
+        // This will be implemented when the activity view page is ready
+        setActivitiesModalOpen(false);
+        setNotice({ type: 'info', text: `Viewing activity: ${activity.title}` });
+    };
+
+    const openCourseView = (course: any) => {
+        // Navigate to course view - for now just close the modal
+        // This will be implemented when the course view page is ready
+        setCoursesModalOpen(false);
+        setNotice({ type: 'info', text: `Viewing course: ${course.title}` });
+    };
+
     return (
         <main className="flex-1 px-4 py-8 sm:px-6 lg:px-10">
             <div className="flex flex-col gap-6">
-                <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h1 className="text-2xl font-semibold">{t('admin.manageStudents')}</h1>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                        <button type="button" onClick={openModal} className="px-4 py-2 text-sm text-white transition-colors rounded-md bg-app-light-accent hover:bg-app-light-accent-hover dark:bg-app-dark-accent dark:hover:bg-app-dark-accent-hover">
+                <header className="flex items-center justify-between gap-3">
+                    <h1 className="text-xl font-semibold flex-shrink-0">{t('admin.manageStudents')}</h1>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                        <button type="button" onClick={openModal} className="px-3 py-2 text-sm text-white transition-colors rounded-md bg-app-light-accent hover:bg-app-light-accent-hover dark:bg-app-dark-accent dark:hover:bg-app-dark-accent-hover whitespace-nowrap">
                             {t('admin.addStudent')}
                         </button>
                         <button
@@ -330,7 +423,7 @@ const AdminStudentsPage: React.FC = () => {
                             onClick={handleToggleStudentEnforcement}
                             disabled={securityLoading || togglingSecurity || !securityPrefs}
                             aria-pressed={securityPrefs?.force_students_change_default}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${securityPrefs?.force_students_change_default
+                            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${securityPrefs?.force_students_change_default
                                 ? 'bg-app-light-accent text-app-light-text-primary border border-app-light-accent'
                                 : 'border border-app-light-border dark:border-app-dark-border text-app-light-text-primary dark:text-app-dark-text-primary'} disabled:opacity-60`}
                         >
@@ -366,37 +459,60 @@ const AdminStudentsPage: React.FC = () => {
                         </div>
                     </div>
                     <div className="mt-6 overflow-x-auto">
-                        <table className="w-full text-sm text-left">
+                        <table className="w-full text-sm text-left table-fixed">
                             <thead>
                                 <tr className="text-app-light-textSecondary dark:text-app-dark-textSecondary">
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.table.studentId')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.table.name')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.table.email')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.table.phone')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.student.major')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.student.class_name')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.student.year')}</th>
-                                    <th className="px-4 py-2 whitespace-nowrap">{t('admin.table.actions')}</th>
+                                    <th className="px-4 py-2 whitespace-nowrap w-32 max-w-32">{t('admin.table.studentId')}</th>
+                                    <th className="px-4 py-2 whitespace-nowrap min-w-0 flex-1">{t('admin.table.name')}</th>
+                                    <th className="px-4 py-2 whitespace-nowrap text-center w-20">{t('admin.table.activities')}</th>
+                                    <th className="px-4 py-2 whitespace-nowrap text-center w-20">{t('admin.table.courses')}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {!students.length && !loading && (
                                     <tr>
-                                        <td colSpan={8} className="py-6 text-center text-app-light-textSecondary dark:text-app-dark-textSecondary">{t('admin.noStudents', { defaultValue: 'No students found.' })}</td>
+                                        <td colSpan={4} className="py-6 text-center text-app-light-textSecondary dark:text-app-dark-textSecondary">{t('admin.noStudents', { defaultValue: 'No students found.' })}</td>
                                     </tr>
                                 )}
                                 {students.map(student => (
                                     <tr key={student.id} className="border-t border-app-light-border dark:border-app-dark-border">
-                                        <td className="px-4 py-2 font-mono text-xs whitespace-nowrap">{student.student_profile?.student_id || '—'}</td>
-                                        <td className="px-4 py-2 whitespace-nowrap">{student.first_name || '—'}</td>
-                                        <td className="px-4 py-2 whitespace-nowrap">{student.email || '—'}</td>
-                                        <td className="px-4 py-2 whitespace-nowrap">{student.student_profile?.phone || '—'}</td>
-                                        <td className="px-4 py-2">{student.student_profile?.major || '—'}</td>
-                                        <td className="px-4 py-2">{student.student_profile?.class_name || '—'}</td>
-                                        <td className="px-4 py-2 whitespace-nowrap">{student.student_profile?.year ?? '—'}</td>
-                                        <td className="px-4 py-2">
-                                            <button type="button" onClick={() => openViewModal(student)} className="text-sm font-medium text-app-light-text dark:text-app-dark-text">
-                                                {t('common.view')}
+                                        <td className="px-4 py-2 font-mono text-sm whitespace-nowrap w-32 max-w-32">
+                                            <button
+                                                type="button"
+                                                onClick={() => openViewModal(student)}
+                                                className="w-full text-left text-app-light-text-primary hover:text-app-light-text-secondary dark:text-app-dark-text-primary dark:hover:text-app-dark-text-secondary hover:underline truncate block overflow-hidden"
+                                            >
+                                                {student.student_profile?.student_id || '—'}
+                                            </button>
+                                        </td>
+                                        <td className="px-4 py-2 min-w-0 flex-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => openViewModal(student)}
+                                                className="w-full text-left text-app-light-text-primary hover:text-app-light-text-secondary dark:text-app-dark-text-primary dark:hover:text-app-dark-text-secondary hover:underline whitespace-nowrap block overflow-hidden relative"
+                                            >
+                                                <span className="block">{student.first_name || '—'}</span>
+                                                <span className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-app-light-surface to-transparent dark:from-app-dark-surface"></span>
+                                            </button>
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-center w-20">
+                                            <button
+                                                type="button"
+                                                onClick={() => loadStudentActivities(student)}
+                                                disabled={loadingActivities}
+                                                className="text-sm font-medium text-app-light-text-primary hover:text-app-light-text-secondary dark:text-app-dark-text-primary dark:hover:text-app-dark-text-secondary disabled:opacity-50"
+                                            >
+                                                {loadingActivities ? '...' : (studentCounts[student.id]?.activities || 0)}
+                                            </button>
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-center w-20">
+                                            <button
+                                                type="button"
+                                                onClick={() => loadStudentCourses(student)}
+                                                disabled={loadingCourses}
+                                                className="text-sm font-medium text-app-light-text-primary hover:text-app-light-text-secondary dark:text-app-dark-text-primary dark:hover:text-app-dark-text-secondary disabled:opacity-50"
+                                            >
+                                                {loadingCourses ? '...' : (studentCounts[student.id]?.courses || 0)}
                                             </button>
                                         </td>
                                     </tr>
@@ -1217,6 +1333,138 @@ const AdminStudentsPage: React.FC = () => {
                                         </button>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Activities Modal */}
+            {activitiesModalOpen && selectedStudentForActivities && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-2xl border shadow-2xl bg-app-light-surface border-app-light-border rounded-2xl dark:bg-app-dark-surface dark:border-app-dark-border">
+                        <div className="flex items-center justify-between p-4 pb-3">
+                            <div>
+                                <p className="text-xs tracking-wider uppercase text-app-light-text-secondary dark:text-app-dark-text-secondary">
+                                    {t('admin.student.activities', { defaultValue: 'Student Activities' })}
+                                </p>
+                                <h2 className="text-lg font-semibold text-app-light-text-primary dark:text-app-dark-text-primary">
+                                    {selectedStudentForActivities.first_name || selectedStudentForActivities.username}
+                                </h2>
+                            </div>
+                            <button type="button" onClick={() => setActivitiesModalOpen(false)} className="p-2 transition-colors rounded-lg text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover" aria-label={t('common.close')}>
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="px-4 pb-4">
+                            {loadingActivities ? (
+                                <div className="py-8 text-center">
+                                    <div className="inline-block w-6 h-6 border-2 border-app-light-accent border-t-transparent rounded-full animate-spin dark:border-app-dark-accent"></div>
+                                    <p className="mt-2 text-sm text-app-light-text-secondary dark:text-app-dark-text-secondary">
+                                        {t('common.loading', { defaultValue: 'Loading...' })}
+                                    </p>
+                                </div>
+                            ) : selectedStudentActivities.length === 0 ? (
+                                <div className="py-8 text-center text-app-light-text-secondary dark:text-app-dark-text-secondary">
+                                    {t('admin.student.noActivities', { defaultValue: 'No activities found for this student.' })}
+                                </div>
+                            ) : (
+                                <div className="space-y-2 max-h-96 overflow-y-auto">
+                                    {selectedStudentActivities.map((participation: any) => (
+                                        <div key={participation.id} className="p-3 border rounded-lg border-app-light-border dark:border-app-dark-border hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover cursor-pointer" onClick={() => openActivityView(participation.activity)}>
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h3 className="font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
+                                                        {participation.activity?.title || 'Unknown Activity'}
+                                                    </h3>
+                                                    <p className="text-sm text-app-light-text-secondary dark:text-app-dark-text-secondary">
+                                                        Status: {participation.status}
+                                                    </p>
+                                                </div>
+                                                <svg className="w-5 h-5 text-app-light-text-secondary dark:text-app-dark-text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M9 18l6-6-6-6" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <div className="flex justify-end pt-4 border-t border-app-light-border dark:border-app-dark-border">
+                                <button
+                                    type="button"
+                                    onClick={() => setActivitiesModalOpen(false)}
+                                    className="px-4 py-2 text-sm font-medium transition-colors border rounded-lg text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent"
+                                >
+                                    {t('common.close')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Courses Modal */}
+            {coursesModalOpen && selectedStudentForCourses && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-2xl border shadow-2xl bg-app-light-surface border-app-light-border rounded-2xl dark:bg-app-dark-surface dark:border-app-dark-border">
+                        <div className="flex items-center justify-between p-4 pb-3">
+                            <div>
+                                <p className="text-xs tracking-wider uppercase text-app-light-text-secondary dark:text-app-dark-text-secondary">
+                                    {t('admin.student.courses', { defaultValue: 'Student Courses' })}
+                                </p>
+                                <h2 className="text-lg font-semibold text-app-light-text-primary dark:text-app-dark-text-primary">
+                                    {selectedStudentForCourses.first_name || selectedStudentForCourses.username}
+                                </h2>
+                            </div>
+                            <button type="button" onClick={() => setCoursesModalOpen(false)} className="p-2 transition-colors rounded-lg text-app-light-text-secondary hover:text-app-light-text-primary dark:text-app-dark-text-secondary dark:hover:text-app-dark-text-primary hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover" aria-label={t('common.close')}>
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="px-4 pb-4">
+                            {loadingCourses ? (
+                                <div className="py-8 text-center">
+                                    <div className="inline-block w-6 h-6 border-2 border-app-light-accent border-t-transparent rounded-full animate-spin dark:border-app-dark-accent"></div>
+                                    <p className="mt-2 text-sm text-app-light-text-secondary dark:text-app-dark-text-secondary">
+                                        {t('common.loading', { defaultValue: 'Loading...' })}
+                                    </p>
+                                </div>
+                            ) : selectedStudentCourses.length === 0 ? (
+                                <div className="py-8 text-center text-app-light-text-secondary dark:text-app-dark-text-secondary">
+                                    {t('admin.student.noCourses', { defaultValue: 'No courses found for this student.' })}
+                                </div>
+                            ) : (
+                                <div className="space-y-2 max-h-96 overflow-y-auto">
+                                    {selectedStudentCourses.map((course: any) => (
+                                        <div key={course.id} className="p-3 border rounded-lg border-app-light-border dark:border-app-dark-border hover:bg-app-light-surface-hover dark:hover:bg-app-dark-surface-hover cursor-pointer" onClick={() => openCourseView(course)}>
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h3 className="font-medium text-app-light-text-primary dark:text-app-dark-text-primary">
+                                                        {course.title || 'Unknown Course'}
+                                                    </h3>
+                                                    <p className="text-sm text-app-light-text-secondary dark:text-app-dark-text-secondary">
+                                                        {course.code && `Code: ${course.code}`} {course.teacher && `• Teacher: ${course.teacher}`}
+                                                    </p>
+                                                </div>
+                                                <svg className="w-5 h-5 text-app-light-text-secondary dark:text-app-dark-text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M9 18l6-6-6-6" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <div className="flex justify-end pt-4 border-t border-app-light-border dark:border-app-dark-border">
+                                <button
+                                    type="button"
+                                    onClick={() => setCoursesModalOpen(false)}
+                                    className="px-4 py-2 text-sm font-medium transition-colors border rounded-lg text-app-light-text-primary bg-app-light-surface border-app-light-border hover:bg-app-light-surface-hover focus:ring-1 focus:ring-app-light-accent focus:ring-offset-2 dark:bg-app-dark-surface dark:text-app-dark-text-primary dark:border-app-dark-border dark:hover:bg-app-dark-surface-hover dark:focus:ring-app-dark-accent"
+                                >
+                                    {t('common.close')}
+                                </button>
                             </div>
                         </div>
                     </div>

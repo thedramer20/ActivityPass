@@ -56,6 +56,10 @@ class ParticipationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         if self.request.user.is_staff or self.request.user.is_superuser:
+            # Allow admin users to filter by student
+            student_id = self.request.query_params.get('student')
+            if student_id:
+                qs = qs.filter(student_id=student_id)
             return qs
         student_profile = getattr(self.request.user, 'student_profile', None)
         if student_profile:

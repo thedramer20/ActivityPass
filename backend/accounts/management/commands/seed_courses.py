@@ -16,6 +16,7 @@ class Command(BaseCommand):
         parser.add_argument('--file', type=str, default=None, help='JSON file path (defaults to backend/accounts/seed_data/courses.json)')
         parser.add_argument('--random-min', type=int, default=5, help='Min random courses for students without specific courses')
         parser.add_argument('--random-max', type=int, default=10, help='Max random courses for students without specific courses')
+        parser.add_argument('--skip-existing', action='store_true', default=True, help='Skip students who already have course enrollments (default: True)')
 
     def handle(self, *args, **options):
         seed_dir = Path(__file__).resolve().parents[2] / 'seed_data'
@@ -26,6 +27,7 @@ class Command(BaseCommand):
             return
         random_min = options['random_min']
         random_max = options['random_max']
+        skip_existing = options['skip_existing']
 
         with json_path.open('r', encoding='utf-8') as f:
             courses_data = json.load(f)
@@ -132,6 +134,8 @@ class Command(BaseCommand):
         # Enroll students
         students = StudentProfile.objects.all()
         enrolled_students = set()
+        random_assignments = 0
+        
         for student in students:
             sid = student.student_id
             if sid in courses_by_student:
@@ -153,12 +157,19 @@ class Command(BaseCommand):
                         CourseEnrollment.objects.get_or_create(course=course, student=student)
                 enrolled_students.add(sid)
             else:
-                # Assign random courses
+                # Check if student already has enrollments
+                if skip_existing and student.course_enrollments.exists():
+                    self.stdout.write(f'Skipping {student} - already has {student.course_enrollments.count()} course enrollments')
+                    continue
+                
+                # Assign random courses (5-10)
                 num_courses = random.randint(random_min, random_max)
                 available_courses = list(course_objects.values())
                 if available_courses:
                     selected_courses = random.sample(available_courses, min(num_courses, len(available_courses)))
                     for course in selected_courses:
                         CourseEnrollment.objects.get_or_create(course=course, student=student)
+                    random_assignments += 1
+                    self.stdout.write(f'Assigned {len(selected_courses)} random courses to {student}')
 
-        self.stdout.write(self.style.SUCCESS(f'Seeding courses done. Created {len(course_objects)} courses, enrolled students.'))
+        self.stdout.write(self.style.SUCCESS(f'Seeding courses done. Created {len(course_objects)} courses, enrolled {len(enrolled_students)} students with specific courses, assigned random courses to {random_assignments} students.'))

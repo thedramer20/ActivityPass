@@ -127,12 +127,13 @@ class CourseEnrollmentSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source='student.user.first_name', read_only=True)
     student_username = serializers.CharField(source='student.user.username', read_only=True)
     course_title = serializers.CharField(source='course.title', read_only=True)
+    course = CourseSerializer(read_only=True)  # Include full course data
 
     class Meta:
         model = CourseEnrollment
         fields = [
             'id',
-            'course',
+            'course',  # Now includes full course data
             'course_title',
             'student',
             'student_name',

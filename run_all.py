@@ -7,6 +7,7 @@ frontend npm packages and optionally starts React dev server or builds productio
 Usage:
     python run_all.py                # full setup + start backend + frontend dev
     python run_all.py --skip-seed    # skip student and course seeding
+    python run_all.py --seed-only    # only seeding, no servers
     python run_all.py --no-frontend  # only backend
     python run_all.py --build        # build frontend instead of starting dev server
     python run_all.py --host 0.0.0.0 --port 8000 --frontend-port 3000
@@ -293,7 +294,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--python", default=sys.executable, help="Python executable to create venv")
     p.add_argument("--backend-dir", default="backend", help="Backend directory path")
     p.add_argument("--frontend-dir", default="frontend", help="Frontend directory path")
-    p.add_argument("--skip-seed", action="store_true", help="Skip student seeding")
+    p.add_argument("--skip-seed", action="store_true", help="Skip student and course seeding")
+    p.add_argument("--seed-only", action="store_true", help="Only run seeding, skip starting servers")
     p.add_argument("--no-frontend", action="store_true", help="Skip all frontend steps")
     p.add_argument("--build", action="store_true", help="Build frontend instead of running dev server")
     p.add_argument("--host", default="127.0.0.1", help="Backend host")
@@ -326,10 +328,12 @@ def main():
     py = ensure_venv(args.python, backend_dir, venv_dir)
     install_backend_deps(py, backend_dir)
     # Prefer init_app which also ensures default admin user
-    if args.skip_seed:
-        migrate(py, backend_dir)
-    else:
+    if not args.skip_seed:
         init_app(py, backend_dir)
+
+    if args.seed_only:
+        print("[done] Seeding completed. Exiting.")
+        return
 
     # Build frontend before starting backend if --build is specified
     if not args.no_frontend and args.build:
